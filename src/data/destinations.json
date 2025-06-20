@@ -1,0 +1,11 @@
+[
+  { "name": "Goa", "image": "/images/dest-goa.jpg", "desc": "Sun, Sand, and Sea" },
+  { "name": "Kurukshetra", "image": "/images/dest-kurukshetra.jpg", "desc": "Land of the Mahabharata" },
+  { "name": "Manali", "image": "/images/dest-manali.jpg", "desc": "Valley of the Gods" },
+  { "name": "Tirupati", "image": "/images/dest-tirupati.jpg", "desc": "Spiritual Hindu Town" },
+  { "name": "Jaipur", "image": "/images/dest-jaipur.jpg", "desc": "The Pink City" },
+  { "name": "Rishikesh", "image": "/images/dest-rishikesh.jpg", "desc": "Yoga Capital of the World" },
+  { "name": "Delhi", "image": "/images/dest-delhi.jpg", "desc": "The Heart of India" },
+  { "name": "Udaipur", "image": "/images/dest-udaipur.jpg", "desc": "The City of Lakes" },
+  { "name": "Shimla", "image": "/images/dest-shimla.jpg", "desc": "Queen of Hills" }
+] 

@@ -1,0 +1,16 @@
+[
+  { "name": "Vijay Travels", "logo": "https://img.icons8.com/color/96/bus--v1.png", "rating": 4.5 },
+  { "name": "Ram Dalal Holidays", "logo": "https://img.icons8.com/color/96/bus-2.png", "rating": 4.2 },
+  { "name": "VRS", "logo": "https://img.icons8.com/color/96/bus.png", "rating": 4.0 },
+  { "name": "Kissan Travels", "logo": "https://img.icons8.com/color/96/school-bus.png", "rating": 4.3 },
+  { "name": "Neeta Travels", "logo": "https://img.icons8.com/color/96/coach.png", "rating": 4.1 },
+  { "name": "Sharma Travels", "logo": "https://img.icons8.com/color/96/bus-side-view.png", "rating": 4.0 },
+  { "name": "VRL Travels", "logo": "https://img.icons8.com/color/96/minibus.png", "rating": 4.4 },
+  { "name": "Parveen Travels", "logo": "https://img.icons8.com/color/96/bus-3.png", "rating": 4.2 },
+  { "name": "KPN Travels", "logo": "https://img.icons8.com/color/96/bus-4.png", "rating": 4.1 },
+  { "name": "Orange Travels", "logo": "https://img.icons8.com/color/96/bus-5.png", "rating": 4.0 },
+  { "name": "Kesineni Travels", "logo": "https://img.icons8.com/color/96/bus-6.png", "rating": 4.0 },
+  { "name": "Patel Travels", "logo": "https://img.icons8.com/color/96/bus-7.png", "rating": 4.0 },
+  { "name": "Mahasagar Travels", "logo": "https://img.icons8.com/color/96/bus-8.png", "rating": 4.0 },
+  { "name": "Gujarat Travels", "logo": "https://img.icons8.com/color/96/bus-9.png", "rating": 4.0 }
+] 

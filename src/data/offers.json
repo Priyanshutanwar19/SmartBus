@@ -1,0 +1,6 @@
+[
+  { "code": "SMARTBUS", "desc": "Flat ₹120 off on first booking", "type": "flat", "value": 120, "minFare": 400 },
+  { "code": "SAVE20", "desc": "Get 20% off up to ₹100", "type": "percent", "value": 20, "minFare": 500 },
+  { "code": "BUS50", "desc": "Flat ₹50 off", "type": "flat", "value": 50, "minFare": 300 },
+  { "code": "TRAVEL", "desc": "Get 15% off up to ₹75", "type": "percent", "value": 15, "minFare": 400 }
+] 
