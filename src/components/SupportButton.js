@@ -56,8 +56,8 @@ export default function SupportButton({ isOpen, setIsOpen }) {
   return (
     <>
       <button
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-blue-600 text-white rounded-full shadow-lg p-4 sm:p-5 z-50 hover:bg-blue-700 transition text-lg sm:text-xl"
-        style={{ minWidth: 56, minHeight: 56 }}
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-blue-600 text-white rounded-full shadow-lg p-4 sm:p-5 z-50 hover:bg-blue-700 transition text-base sm:text-xl font-semibold border-2 border-white/20"
+        style={{ minWidth: 60, minHeight: 60 }}
         onClick={handleOpen}
         aria-label="Support"
       >
@@ -68,7 +68,7 @@ export default function SupportButton({ isOpen, setIsOpen }) {
           <div className="fixed inset-0 bg-black bg-opacity-40" onClick={() => setIsOpen(false)} />
           <div className="relative h-full w-full max-w-full sm:max-w-sm bg-white shadow-xl flex flex-col" style={{ minHeight: '100vh', maxHeight: '100vh', right: 0 }}>
             <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 z-10 text-2xl sm:text-lg p-2 sm:p-1"
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 z-10 text-2xl sm:text-lg p-2 sm:p-1 bg-white rounded-full shadow"
               style={{ minWidth: 44, minHeight: 44 }}
               onClick={() => setIsOpen(false)}
               aria-label="Close"
