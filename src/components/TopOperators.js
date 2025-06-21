@@ -21,21 +21,21 @@ export default function TopOperators() {
 
   return (
     <section className="my-8">
-      <h2 className="text-2xl font-bold mb-4">Top Bus Operators</h2>
-      <div className="flex gap-6 overflow-x-auto px-2 scrollbar-hide">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4">Top Bus Operators</h2>
+      <div className="flex gap-3 sm:gap-6 overflow-x-auto px-2 scrollbar-hide">
         {operators.map((op) => (
           <div
             key={op.name}
-            className="min-w-[220px] max-w-xs bg-white rounded-lg shadow p-4 flex flex-col items-center transition-transform duration-300 hover:scale-105"
+            className="min-w-[160px] sm:min-w-[220px] max-w-xs bg-white rounded-lg shadow p-3 sm:p-4 flex flex-col items-center transition-transform duration-300 hover:scale-105"
           >
             <img
               src={`/images/${op.name.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "")}-logo.png`}
               alt={op.name}
-              className="w-20 h-20 object-contain rounded-full border bg-white mb-2"
+              className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-full border bg-white mb-2"
               onError={e => { e.target.onerror = null; e.target.src = defaultLogo; }}
             />
-            <div className="font-semibold text-lg text-center">{op.name}</div>
-            <div className="text-yellow-500">★ {op.rating}</div>
+            <div className="font-semibold text-base sm:text-lg text-center">{op.name}</div>
+            <div className="text-yellow-500 text-sm sm:text-base">★ {op.rating}</div>
           </div>
         ))}
       </div>

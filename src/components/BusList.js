@@ -169,7 +169,71 @@ export default function BusList({ from, to, date }) {
   return (
     <div className="my-8">
       <h2 className="text-xl font-bold mb-4">Available Buses ({from} → {to} on {date})</h2>
-      <div className="overflow-x-auto">
+      
+      {/* Mobile Cards View */}
+      <div className="md:hidden space-y-4">
+        {buses.map(bus => (
+          <div key={bus.id} className="bg-white rounded-lg shadow-md p-4 border">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src={`/images/${bus.operator.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "")}-logo.png`}
+                  alt={bus.operator}
+                  className="w-10 h-10 object-contain rounded-full border bg-white"
+                  onError={e => { e.target.onerror = null; e.target.src = '/images/bus-default.png'; }}
+                  loading="lazy"
+                />
+                <div>
+                  <div className="font-semibold text-gray-900">{bus.operator}</div>
+                  <div className="text-sm text-gray-500">{distance} km</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-green-600">₹{bus.price}</div>
+                <div className="text-sm text-gray-500">per seat</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <div className="text-sm text-gray-500">Departure</div>
+                <div className="font-semibold">{bus.time}</div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">Arrival</div>
+                <div className="font-semibold">{bus.arrival}</div>
+              </div>
+            </div>
+            
+            {bus.offer && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-green-700 font-medium">Special Offer</div>
+                    <div className="text-xs text-green-600">{bus.offer.desc}</div>
+                  </div>
+                  <button
+                    className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition"
+                    onClick={() => handleCopy(bus.offer.code, bus.id)}
+                  >
+                    {copied === bus.id ? "Copied!" : bus.offer.code}
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            <button
+              className="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-green-700 transition"
+              onClick={() => navigate(`/book/${bus.id}`, { state: { bus, from, to, date } })}
+            >
+              Book Now
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full bg-white rounded shadow">
           <thead>
             <tr className="bg-gray-100">
