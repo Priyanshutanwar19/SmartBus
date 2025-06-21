@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function PassengerDetails() {
@@ -15,6 +15,11 @@ export default function PassengerDetails() {
   const [coupon, setCoupon] = useState("");
   const [applied, setApplied] = useState(null);
   const [couponError, setCouponError] = useState("");
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });

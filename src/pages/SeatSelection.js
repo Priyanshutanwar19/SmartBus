@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const seatTypes = [
@@ -29,6 +29,11 @@ export default function SeatSelection() {
   const seats = generateSeats();
   
   const baseFare = bus ? bus.price : 500; // The price is already calculated based on distance
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Calculate fare
   let fare = selected.reduce((sum, seatId) => {

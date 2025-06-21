@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function ManageBooking() {
   const [pnr, setPnr] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const handleFindBooking = (e) => {
     e.preventDefault();

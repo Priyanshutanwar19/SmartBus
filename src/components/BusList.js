@@ -94,6 +94,8 @@ export default function BusList({ from, to, date }) {
   const [copied, setCopied] = useState(null);
   const [distance, setDistance] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('price'); // 'price', 'time', 'operator'
+  const [filterOperator, setFilterOperator] = useState('all');
 
   useEffect(() => {
     async function fetchDistance() {
@@ -109,7 +111,7 @@ export default function BusList({ from, to, date }) {
 
   const buses = useMemo(() => {
     if (!distance) return [];
-    return Array.from({ length: 12 }, (_, i) => {
+    let busList = Array.from({ length: 12 }, (_, i) => {
       const op = operators[i % operators.length];
       const offer = offers[Math.floor(Math.random() * offers.length)];
       const depTime = getRandomTime(i);
@@ -126,7 +128,28 @@ export default function BusList({ from, to, date }) {
         distance // pass distance to next component
       };
     });
-  }, [distance]);
+
+    // Filter by operator
+    if (filterOperator !== 'all') {
+      busList = busList.filter(bus => bus.operator === filterOperator);
+    }
+
+    // Sort buses
+    busList.sort((a, b) => {
+      switch (sortBy) {
+        case 'price':
+          return a.price - b.price;
+        case 'time':
+          return a.time.localeCompare(b.time);
+        case 'operator':
+          return a.operator.localeCompare(b.operator);
+        default:
+          return 0;
+      }
+    });
+
+    return busList;
+  }, [distance, sortBy, filterOperator]);
 
   function handleCopy(code, id) {
     // Check for secure context and clipboard API availability
@@ -169,6 +192,40 @@ export default function BusList({ from, to, date }) {
   return (
     <div className="my-8">
       <h2 className="text-xl font-bold mb-4">Available Buses ({from} → {to} on {date})</h2>
+      
+      {/* Desktop Controls */}
+      <div className="hidden md:flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg border">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Sort by:</label>
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="price">Price (Low to High)</option>
+              <option value="time">Departure Time</option>
+              <option value="operator">Operator Name</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Filter by:</label>
+            <select 
+              value={filterOperator} 
+              onChange={(e) => setFilterOperator(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Operators</option>
+              {Array.from(new Set(buses.map(bus => bus.operator))).map(operator => (
+                <option key={operator} value={operator}>{operator}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="text-sm text-gray-600">
+          {buses.length} bus{buses.length !== 1 ? 'es' : ''} found
+        </div>
+      </div>
       
       {/* Mobile Cards View */}
       <div className="md:hidden space-y-4">
@@ -234,53 +291,99 @@ export default function BusList({ from, to, date }) {
 
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full bg-white rounded shadow">
+        <table className="min-w-full bg-white rounded-lg shadow-lg border border-gray-200">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 text-left">Operator</th>
-              <th className="p-3 text-left">Departure</th>
-              <th className="p-3 text-left">Dropping</th>
-              <th className="p-3 text-left">Fare</th>
-              <th className="p-3 text-left">Offer</th>
-              <th className="p-3"></th>
+            <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+              <th className="p-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Operator</th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Departure</th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Dropping</th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Fare</th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Offer</th>
+              <th className="p-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Action</th>
             </tr>
           </thead>
-          <tbody>
-            {buses.map(bus => (
-              <tr key={bus.id} className="border-b hover:bg-gray-50">
-                <td className="p-3 font-semibold flex items-center gap-2">
-                  <img
-                    src={`/images/${bus.operator.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "")}-logo.png`}
-                    alt={bus.operator}
-                    className="w-8 h-8 object-contain rounded-full border bg-white"
-                    onError={e => { e.target.onerror = null; e.target.src = '/images/bus-default.png'; }}
-                    loading="lazy"
-                  />
-                  {bus.operator}
+          <tbody className="divide-y divide-gray-100">
+            {buses.map((bus, index) => (
+              <tr 
+                key={bus.id} 
+                className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 ease-in-out transform hover:scale-[1.01] hover:shadow-md border-l-4 border-l-transparent hover:border-l-blue-500"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <td className="p-4 font-semibold flex items-center gap-3 group">
+                  <div className="relative">
+                    <img
+                      src={`/images/${bus.operator.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "")}-logo.png`}
+                      alt={bus.operator}
+                      className="w-10 h-10 object-contain rounded-full border-2 border-gray-200 group-hover:border-blue-300 transition-all duration-300 shadow-sm group-hover:shadow-md"
+                      onError={e => { e.target.onerror = null; e.target.src = '/images/bus-default.png'; }}
+                      loading="lazy"
+                    />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <div>
+                    <div className="text-gray-900 group-hover:text-blue-700 transition-colors duration-300">{bus.operator}</div>
+                    <div className="text-xs text-gray-500">{distance} km • {Math.round(distance/50)}h journey</div>
+                  </div>
                 </td>
-                <td className="p-3">{bus.time}</td>
-                <td className="p-3">{bus.arrival}</td>
-                <td className="p-3 font-bold">₹{bus.price}</td>
-                <td className="p-3 text-green-700 font-medium flex items-center gap-2">
+                <td className="p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="font-medium text-gray-900">{bus.time}</span>
+                  </div>
+                </td>
+                <td className="p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="font-medium text-gray-900">{bus.arrival}</span>
+                  </div>
+                </td>
+                <td className="p-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-600 hover:text-green-700 transition-colors duration-300">₹{bus.price}</div>
+                    <div className="text-xs text-gray-500">per seat</div>
+                  </div>
+                </td>
+                <td className="p-4 text-green-700 font-medium flex items-center gap-2">
                   {bus.offer ? (
-                    <>
-                      <span title={bus.offer.desc}>{bus.offer.code}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium border border-green-200 hover:bg-green-200 transition-colors duration-300">
+                        <span title={bus.offer.desc}>{bus.offer.code}</span>
+                      </div>
                       <button
-                        className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 border border-blue-200"
+                        className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 border border-blue-200 transition-all duration-300 hover:scale-105 hover:shadow-sm flex items-center gap-1"
                         onClick={() => handleCopy(bus.offer.code, bus.id)}
                         title="Copy coupon"
                       >
-                        {copied === bus.id ? "Copied!" : "Copy"}
+                        {copied === bus.id ? (
+                          <>
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Copy
+                          </>
+                        )}
                       </button>
-                    </>
-                  ) : "-"}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
                 </td>
-                <td className="p-3">
+                <td className="p-4">
                   <button
-                    className="bg-green-600 text-white rounded px-4 py-2 font-semibold hover:bg-green-700 transition"
+                    className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg px-6 py-3 font-semibold hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2 group"
                     onClick={() => navigate(`/book/${bus.id}`, { state: { bus, from, to, date } })}
                   >
-                    Book Now
+                    <span>Book Now</span>
+                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                   </button>
                 </td>
               </tr>
