@@ -212,4 +212,8 @@ For support, email support@smartbus.com or use the in-app chat support.
 
 ---
 
+<<<<<<< HEAD
 ⭐ **Star this repository if you found it helpful!** 
+=======
+⭐ **Star this repository if you found it helpful!**
+>>>>>>> 84f82ffd83019ac3e80a578422b27f44747f5439
