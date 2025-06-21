@@ -28,28 +28,29 @@ export default function HeroSlider() {
         onError={e => e.target.style.display = 'none'}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent z-10" />
-      <div className="relative z-20 text-center text-white px-4">
+      <div className="relative z-20 text-center text-white px-2 sm:px-4 w-full">
         <h1 className="text-2xl sm:text-3xl md:text-6xl font-bold mb-2 drop-shadow-2xl animate-fade-in leading-tight">Book Your Next Journey with SmartBus</h1>
         <p className="text-sm sm:text-lg md:text-xl text-indigo-200 mb-4 md:mb-8 animate-fade-in px-2" style={{ animationDelay: '200ms' }}>Fast, Safe, and Reliable Online Bus Ticket Booking</p>
         
-        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-4 md:gap-8 max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-sm p-2 sm:p-3 rounded-lg animate-fade-in" style={{ animationDelay: '400ms' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-green-300" viewBox="0 0 20 20" fill="currentColor">
+        {/* Feature Badges - stack vertically on mobile, horizontally on sm+ */}
+        <div className="flex flex-col sm:flex-row flex-wrap justify-center items-stretch gap-3 sm:gap-4 md:gap-8 max-w-4xl mx-auto w-full">
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm p-3 rounded-lg animate-fade-in w-full sm:w-auto justify-center" style={{ animationDelay: '400ms' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 sm:h-8 sm:w-8 text-green-300 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            <span className="font-semibold text-sm sm:text-base">Lowest Price Guarantee</span>
+            <span className="font-semibold text-base sm:text-base">Lowest Price Guarantee</span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-sm p-2 sm:p-3 rounded-lg animate-fade-in" style={{ animationDelay: '600ms' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-green-300" viewBox="0 0 20 20" fill="currentColor">
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm p-3 rounded-lg animate-fade-in w-full sm:w-auto justify-center" style={{ animationDelay: '600ms' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 sm:h-8 sm:w-8 text-green-300 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
               <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.518.76a11.024 11.024 0 006.25 6.25l.76-1.518a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
             </svg>
-            <span className="font-semibold text-sm sm:text-base">24/7 Customer Support</span>
+            <span className="font-semibold text-base sm:text-base">24/7 Customer Support</span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-sm p-2 sm:p-3 rounded-lg animate-fade-in" style={{ animationDelay: '800ms' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8 text-green-300" viewBox="0 0 20 20" fill="currentColor">
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm p-3 rounded-lg animate-fade-in w-full sm:w-auto justify-center" style={{ animationDelay: '800ms' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 sm:h-8 sm:w-8 text-green-300 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
               <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zm-3 2a5 5 0 00-5 5v1h10v-1a5 5 0 00-5-5zM16 6a3 3 0 11-6 0 3 3 0 016 0zm-3 2a5 5 0 00-4.545 3.003A5.974 5.974 0 0115 13v1h4v-1a5 5 0 00-5-5z" />
             </svg>
-            <span className="font-semibold text-sm sm:text-base">Millions of Happy Customers</span>
+            <span className="font-semibold text-base sm:text-base">Millions of Happy Customers</span>
           </div>
         </div>
       </div>
