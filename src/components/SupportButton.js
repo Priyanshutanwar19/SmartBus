@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 
-const GEMINI_API_KEY = "AIzaSyB3LZqGp-gipoSasch2mzvVqVShn5J7bIs";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+// Prefer reading the API key from environment variables; fallback to provided key for now
+const FALLBACK_GEMINI_KEY = "AIzaSyAdZ8XgEqiRzXVeN5p5xNM1X-cDke2OSU8";
+const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY || FALLBACK_GEMINI_KEY;
+const DEFAULT_GEMINI_MODEL = process.env.REACT_APP_GEMINI_MODEL || "gemini-1.5-flash";
+const GEMINI_API_URL = (process.env.REACT_APP_GEMINI_API_URL && GEMINI_API_KEY)
+  ? `${process.env.REACT_APP_GEMINI_API_URL}?key=${GEMINI_API_KEY}`
+  : (GEMINI_API_KEY
+      ? `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
+      : "");
 
 const SYSTEM_PROMPT = "You are being used as a support for SmartBus app. Answer only app-related queries. Keep replies short, to the point, and do not use asterisks or AI symbols.";
 const QUICK_REPLIES = [
@@ -16,6 +23,7 @@ export default function SupportButton({ isOpen, setIsOpen }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const isConfigured = Boolean(GEMINI_API_KEY && GEMINI_API_URL);
 
   function handleOpen() {
     setIsOpen(true);
@@ -29,26 +37,62 @@ export default function SupportButton({ isOpen, setIsOpen }) {
   async function sendMessage(msg) {
     const userMessage = (typeof msg === "string" ? msg : input).trim();
     if (!userMessage) return;
+    if (!isConfigured) {
+      setMessages(msgs => [...msgs, { role: "bot", text: "Support is not configured yet. Add REACT_APP_GEMINI_API_KEY in your .env and reload." }]);
+      return;
+    }
     setMessages(msgs => [...msgs, { role: "user", text: userMessage }]);
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch(GEMINI_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
-            { role: "user", parts: [{ text: userMessage }] }
-          ]
-        })
-      });
-      const data = await res.json();
+      const attempt = async (signal) => {
+        const res = await fetch(GEMINI_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
+              { role: "user", parts: [{ text: userMessage }] }
+            ]
+          }),
+          signal
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const errMsg = data?.error?.message || `Request failed (${res.status})`;
+          const err = new Error(errMsg);
+          err.status = res.status;
+          throw err;
+        }
+        return data;
+      };
+
+      // Retry up to 2 times on transient errors (429/5xx) with backoff
+      let data;
+      for (let i = 0; i < 2; i++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        try {
+          data = await attempt(controller.signal);
+          clearTimeout(timeoutId);
+          break;
+        } catch (err) {
+          clearTimeout(timeoutId);
+          const transient = err?.name === "AbortError" || (err?.status && (err.status === 429 || (err.status >= 500 && err.status <= 599)));
+          if (i < 1 && transient) {
+            await new Promise(r => setTimeout(r, 800 * (i + 1)));
+            continue;
+          }
+          throw err;
+        }
+      }
+
       let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "(No response)";
       reply = reply.replace(/\*/g, "").replace(/\bAI\b/gi, "");
       setMessages(msgs => [...msgs, { role: "bot", text: reply }]);
     } catch (e) {
-      setMessages(msgs => [...msgs, { role: "bot", text: "Error contacting Gemini API." }]);
+      const friendly = e?.name === "AbortError" ? "Request timed out. Please try again." : (e?.message || "Error contacting support API.");
+      setMessages(msgs => [...msgs, { role: "bot", text: friendly }]);
     }
     setLoading(false);
   }
@@ -101,6 +145,9 @@ export default function SupportButton({ isOpen, setIsOpen }) {
                   }>{msg.text}</span>
                 </div>
               ))}
+              {!isConfigured && (
+                <div className="text-xs text-red-500">Support API not configured. Set REACT_APP_GEMINI_API_KEY in your environment.</div>
+              )}
               {loading && <div className="text-xs text-gray-400">SmartBus is typing...</div>}
             </div>
             <form className="flex gap-2 p-2 sm:p-4 border-t bg-white" onSubmit={e => { e.preventDefault(); sendMessage(); }}>
@@ -109,10 +156,10 @@ export default function SupportButton({ isOpen, setIsOpen }) {
                 placeholder="Type your message..."
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                disabled={loading}
+                disabled={loading || !isConfigured}
                 style={{ minHeight: 44 }}
               />
-              <button className="bg-blue-600 text-white rounded px-4 py-2 font-semibold hover:bg-blue-700 transition text-base sm:text-sm min-h-[44px]" disabled={loading || !input.trim()}>
+              <button className="bg-blue-600 text-white rounded px-4 py-2 font-semibold hover:bg-blue-700 transition text-base sm:text-sm min-h-[44px]" disabled={loading || !input.trim() || !isConfigured}>
                 Send
               </button>
             </form>
