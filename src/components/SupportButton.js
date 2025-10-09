@@ -1,11 +1,12 @@
 import React, { useState } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Prefer reading the API key from environment variables; fallback to provided key for now
 const FALLBACK_GEMINI_KEY = "AIzaSyAdZ8XgEqiRzXVeN5p5xNM1X-cDke2OSU8";
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY || FALLBACK_GEMINI_KEY;
 const DEFAULT_GEMINI_MODEL = process.env.REACT_APP_GEMINI_MODEL || "gemini-2.5-flash";
-// Explicit API URL (hardcoded) so there's no ambiguity
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+// Initialize Gemini SDK client
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 const SYSTEM_PROMPT = "You are being used as a support for SmartBus app. Answer only app-related queries. Keep replies short, to the point, and do not use asterisks or AI symbols.";
 const QUICK_REPLIES = [
@@ -43,57 +44,36 @@ export default function SupportButton({ isOpen, setIsOpen }) {
     setInput("");
     setLoading(true);
     try {
-      const attempt = async (signal) => {
-        const res = await fetch(GEMINI_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              { role: "user", parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${userMessage}` }] }
-            ],
-            generationConfig: {
-              temperature: 0.7,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 256
-            },
-            safetySettings: [
-              { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-              { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-              { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-            ]
-          }),
-          signal
+      const attempt = async () => {
+        const model = genAI.getGenerativeModel({ model: DEFAULT_GEMINI_MODEL });
+        const result = await model.generateContent({
+          contents: [
+            { role: "user", parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${userMessage}` }] }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 256
+          },
+          safetySettings: [
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+          ]
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          const errMsg = data?.error?.message || `Request failed (${res.status})`;
-          const err = new Error(errMsg);
-          err.status = res.status;
-          throw err;
-        }
-        // If API returns no candidates but prompt feedback exists (blocked content)
-        if (!data?.candidates?.length && data?.promptFeedback) {
-          const b = data.promptFeedback?.blockReason || "content_blocked";
-          const err = new Error(`Response blocked: ${b}`);
-          err.status = 400;
-          throw err;
-        }
-        return data;
+        return result.response;
       };
 
       // Retry up to 2 times on transient errors (429/5xx) with backoff
       let data;
       for (let i = 0; i < 2; i++) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        const timeout = (ms) => new Promise((_, r) => setTimeout(() => r(new Error("Request timed out")), ms));
         try {
-          data = await attempt(controller.signal);
-          clearTimeout(timeoutId);
+          data = await Promise.race([attempt(), timeout(20000)]);
           break;
         } catch (err) {
-          clearTimeout(timeoutId);
           const transient = err?.name === "AbortError" || (err?.status && (err.status === 429 || (err.status >= 500 && err.status <= 599)));
           if (i < 1 && transient) {
             await new Promise(r => setTimeout(r, 800 * (i + 1)));
@@ -103,7 +83,7 @@ export default function SupportButton({ isOpen, setIsOpen }) {
         }
       }
 
-      let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "(No response)";
+      let reply = data?.text || data?.candidates?.[0]?.content?.parts?.[0]?.text || "(No response)";
       reply = reply.replace(/\*/g, "").replace(/\bAI\b/gi, "");
       setMessages(msgs => [...msgs, { role: "bot", text: reply }]);
       setLastError("");
