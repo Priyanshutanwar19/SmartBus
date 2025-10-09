@@ -44,8 +44,9 @@ export default function SupportButton({ isOpen, setIsOpen }) {
     setInput("");
     setLoading(true);
     try {
+      let currentModel = DEFAULT_GEMINI_MODEL;
       const attempt = async () => {
-        const model = genAI.getGenerativeModel({ model: DEFAULT_GEMINI_MODEL });
+        const model = genAI.getGenerativeModel({ model: currentModel });
         const result = await model.generateContent({
           contents: [
             { role: "user", parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${userMessage}` }] }
@@ -75,6 +76,13 @@ export default function SupportButton({ isOpen, setIsOpen }) {
           break;
         } catch (err) {
           const transient = err?.name === "AbortError" || (err?.status && (err.status === 429 || (err.status >= 500 && err.status <= 599)));
+          const quotaLike = /quota|rate|exceed|limit/i.test(String(err?.message || ""));
+          // Model fallback on 429/quota errors
+          if ((err?.status === 429 || quotaLike) && currentModel !== "gemini-1.5-flash") {
+            currentModel = "gemini-1.5-flash";
+            // eslint-disable-next-line no-console
+            console.warn("Falling back to model:", currentModel);
+          }
           if (i < 1 && transient) {
             await new Promise(r => setTimeout(r, 800 * (i + 1)));
             continue;
