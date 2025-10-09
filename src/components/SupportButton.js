@@ -83,13 +83,29 @@ export default function SupportButton({ isOpen, setIsOpen }) {
         }
       }
 
-      let reply = data?.text || data?.candidates?.[0]?.content?.parts?.[0]?.text || "(No response)";
+      let reply = "";
+      try {
+        if (data && typeof data.text === "function") {
+          reply = data.text();
+        } else if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          reply = data.candidates[0].content.parts[0].text;
+        } else {
+          reply = "(No response)";
+        }
+      } catch (parseErr) {
+        // Fall back to JSON string if parsing fails
+        reply = "(No response)";
+        // eslint-disable-next-line no-console
+        console.error("Gemini parse error:", parseErr);
+      }
       reply = reply.replace(/\*/g, "").replace(/\bAI\b/gi, "");
       setMessages(msgs => [...msgs, { role: "bot", text: reply }]);
       setLastError("");
     } catch (e) {
       const friendly = e?.name === "AbortError" ? "Request timed out. Please try again." : (e?.message || "Error contacting support API.");
       setMessages(msgs => [...msgs, { role: "bot", text: friendly }]);
+      // eslint-disable-next-line no-console
+      console.error("Gemini request error:", e);
       setLastError(String(e?.message || e));
     }
     setLoading(false);
