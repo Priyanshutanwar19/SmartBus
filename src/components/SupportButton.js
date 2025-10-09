@@ -3,12 +3,9 @@ import React, { useState } from "react";
 // Prefer reading the API key from environment variables; fallback to provided key for now
 const FALLBACK_GEMINI_KEY = "AIzaSyAdZ8XgEqiRzXVeN5p5xNM1X-cDke2OSU8";
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY || FALLBACK_GEMINI_KEY;
-const DEFAULT_GEMINI_MODEL = process.env.REACT_APP_GEMINI_MODEL || "gemini-1.5-flash";
-const GEMINI_API_URL = (process.env.REACT_APP_GEMINI_API_URL && GEMINI_API_KEY)
-  ? `${process.env.REACT_APP_GEMINI_API_URL}?key=${GEMINI_API_KEY}`
-  : (GEMINI_API_KEY
-      ? `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
-      : "");
+const DEFAULT_GEMINI_MODEL = process.env.REACT_APP_GEMINI_MODEL || "gemini-2.5-flash";
+// Explicit API URL (hardcoded) so there's no ambiguity
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const SYSTEM_PROMPT = "You are being used as a support for SmartBus app. Answer only app-related queries. Keep replies short, to the point, and do not use asterisks or AI symbols.";
 const QUICK_REPLIES = [
@@ -23,7 +20,8 @@ export default function SupportButton({ isOpen, setIsOpen }) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const isConfigured = Boolean(GEMINI_API_KEY && GEMINI_API_URL);
+  const isConfigured = Boolean(GEMINI_API_KEY);
+  const [lastError, setLastError] = useState("");
 
   function handleOpen() {
     setIsOpen(true);
@@ -51,8 +49,19 @@ export default function SupportButton({ isOpen, setIsOpen }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [
-              { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
-              { role: "user", parts: [{ text: userMessage }] }
+              { role: "user", parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${userMessage}` }] }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 256
+            },
+            safetySettings: [
+              { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
             ]
           }),
           signal
@@ -62,6 +71,13 @@ export default function SupportButton({ isOpen, setIsOpen }) {
           const errMsg = data?.error?.message || `Request failed (${res.status})`;
           const err = new Error(errMsg);
           err.status = res.status;
+          throw err;
+        }
+        // If API returns no candidates but prompt feedback exists (blocked content)
+        if (!data?.candidates?.length && data?.promptFeedback) {
+          const b = data.promptFeedback?.blockReason || "content_blocked";
+          const err = new Error(`Response blocked: ${b}`);
+          err.status = 400;
           throw err;
         }
         return data;
@@ -90,9 +106,11 @@ export default function SupportButton({ isOpen, setIsOpen }) {
       let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "(No response)";
       reply = reply.replace(/\*/g, "").replace(/\bAI\b/gi, "");
       setMessages(msgs => [...msgs, { role: "bot", text: reply }]);
+      setLastError("");
     } catch (e) {
       const friendly = e?.name === "AbortError" ? "Request timed out. Please try again." : (e?.message || "Error contacting support API.");
       setMessages(msgs => [...msgs, { role: "bot", text: friendly }]);
+      setLastError(String(e?.message || e));
     }
     setLoading(false);
   }
@@ -149,6 +167,7 @@ export default function SupportButton({ isOpen, setIsOpen }) {
                 <div className="text-xs text-red-500">Support API not configured. Set REACT_APP_GEMINI_API_KEY in your environment.</div>
               )}
               {loading && <div className="text-xs text-gray-400">SmartBus is typing...</div>}
+              {!!lastError && <div className="text-xs text-red-400 mt-2">Error: {lastError}</div>}
             </div>
             <form className="flex gap-2 p-2 sm:p-4 border-t bg-white" onSubmit={e => { e.preventDefault(); sendMessage(); }}>
               <input
@@ -162,6 +181,7 @@ export default function SupportButton({ isOpen, setIsOpen }) {
               <button className="bg-blue-600 text-white rounded px-4 py-2 font-semibold hover:bg-blue-700 transition text-base sm:text-sm min-h-[44px]" disabled={loading || !input.trim() || !isConfigured}>
                 Send
               </button>
+              <button type="button" className="bg-gray-200 text-gray-800 rounded px-3 py-2 font-semibold hover:bg-gray-300 transition text-base sm:text-sm min-h-[44px]" disabled={loading || !isConfigured} onClick={() => sendMessage("Test connection")}>Test</button>
             </form>
           </div>
         </div>
