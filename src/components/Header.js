@@ -1,9 +1,43 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Header({ onHelpClick }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Close profile dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    setIsProfileOpen(false);
+    navigate("/");
+    window.location.reload();
+  };
 
   const navLinkClasses = "px-3 py-2 rounded-md text-sm font-medium transition-colors";
   const activeLinkClasses = "bg-blue-100 text-blue-700";
@@ -47,6 +81,96 @@ export default function Header({ onHelpClick }) {
           >
             Help
           </button>
+          
+          {/* Show Profile or Login/SignUp based on authentication */}
+          {user ? (
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <svg className={`w-4 h-4 text-gray-600 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Profile Dropdown */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{user.name || 'User'}</p>
+                        <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="px-2 py-2">
+                    <Link
+                      to="/profile"
+                      className="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        My Profile
+                      </div>
+                    </Link>
+                    <Link
+                      to="/my-bookings"
+                      className="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        My Bookings
+                      </div>
+                    </Link>
+                  </div>
+
+                  <div className="border-t border-gray-200 px-2 py-2">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Sign Out
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link 
+                to="/login" 
+                className={`${navLinkClasses} ${location.pathname === '/login' ? activeLinkClasses : inactiveLinkClasses}`}
+              >
+                Login
+              </Link>
+              <Link 
+                to="/register" 
+                className="px-4 py-2 rounded-md text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -91,6 +215,63 @@ export default function Header({ onHelpClick }) {
             >
               Help
             </button>
+            
+            {/* Mobile - Show Profile or Login/SignUp */}
+            {user ? (
+              <>
+                <div className="px-3 py-3 border-t border-b border-gray-200 my-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">
+                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{user.name || 'User'}</p>
+                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                </div>
+                <Link 
+                  to="/profile" 
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${inactiveLinkClasses}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  My Profile
+                </Link>
+                <Link 
+                  to="/my-bookings" 
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${inactiveLinkClasses}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  My Bookings
+                </Link>
+                <button 
+                  onClick={() => {
+                    handleSignOut();
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/login' ? activeLinkClasses : inactiveLinkClasses}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="block px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
