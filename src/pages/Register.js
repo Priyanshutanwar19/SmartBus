@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authAPI } from "../services/authApi";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -7,12 +8,12 @@ export default function Register() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: ""
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,6 +27,10 @@ export default function Register() {
         ...prev,
         [name]: ""
       }));
+    }
+    // Clear API error
+    if (apiError) {
+      setApiError("");
     }
   };
 
@@ -44,12 +49,6 @@ export default function Register() {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ""))) {
-      newErrors.phone = "Phone number must be 10 digits";
     }
 
     if (!formData.password) {
@@ -76,26 +75,38 @@ export default function Register() {
     }
 
     setIsLoading(true);
+    setApiError("");
 
-    // Simulating API call
-    setTimeout(() => {
-      console.log("Register data:", formData);
-      // Store user data in localStorage (for demo purposes)
-      const userData = {
-        email: formData.email,
+    try {
+      // Call backend API
+      const response = await authAPI.register({
         name: `${formData.firstName} ${formData.lastName}`,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        role: 'USER'
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (response.success) {
+        // After successful registration, auto-login
+        const loginResponse = await authAPI.login({
+          email: formData.email,
+          password: formData.password
+        });
+
+        if (loginResponse.success) {
+          // Store token and user data
+          localStorage.setItem("accessToken", loginResponse.accessToken);
+          localStorage.setItem("user", JSON.stringify(loginResponse.user));
+          
+          // Redirect to home page
+          navigate("/");
+          window.location.reload();
+        }
+      }
+    } catch (error) {
+      setApiError(error.message || "Registration failed. Please try again.");
+    } finally {
       setIsLoading(false);
-      // Redirect to home page (will now be personalized)
-      navigate("/");
-      // Reload to update header
-      window.location.reload();
-    }, 1000);
+    }
   };
 
   return (
@@ -112,6 +123,13 @@ export default function Register() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* API Error Message */}
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <p className="text-sm">{apiError}</p>
+              </div>
+            )}
+
             {/* Name Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -176,28 +194,6 @@ export default function Register() {
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Phone Field */}
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                autoComplete="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                className={`appearance-none relative block w-full px-3 py-3 border ${
-                  errors.phone ? "border-red-500" : "border-gray-300"
-                } placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
-                placeholder="9876543210"
-              />
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
               )}
             </div>
 

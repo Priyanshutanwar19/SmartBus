@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { adminUserAPI } from '../../services/adminApi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
@@ -24,7 +25,9 @@ export default function AdminUsers() {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-      alert('Failed to fetch users');
+      toast.error('Failed to fetch users', {
+        description: error.response?.data?.message || 'An error occurred while loading users'
+      });
     } finally {
       setLoading(false);
     }
@@ -36,11 +39,11 @@ export default function AdminUsers() {
     try {
       const response = await adminUserAPI.deleteUser(id);
       if (response.data.success) {
-        alert(response.data.message);
+        toast.success(response.data.message);
         fetchUsers();
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to delete user');
+      toast.error(error.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -48,13 +51,13 @@ export default function AdminUsers() {
     try {
       const response = await adminUserAPI.changeUserRole(selectedUser.id, newRole);
       if (response.data.success) {
-        alert(response.data.message);
+        toast.success(response.data.message);
         setShowRoleModal(false);
         setSelectedUser(null);
         fetchUsers();
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to change role');
+      toast.error(error.response?.data?.message || 'Failed to change role');
     }
   };
 

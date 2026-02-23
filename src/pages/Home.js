@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import BusSearchForm from "../components/BusSearchForm";
 import PopularDestinations from "../components/PopularDestinations";
 import TopOperators from "../components/TopOperators";
@@ -10,6 +12,7 @@ function getToday() {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState(null);
   const resultsRef = useRef(null);
 
@@ -18,6 +21,16 @@ export default function Home() {
   };
 
   const handleDestinationClick = (to) => {
+    // Check if user is logged in
+    const user = localStorage.getItem("user");
+    if (!user) {
+      toast.error("Please login to search for buses", {
+        description: "You need to be logged in to search and book bus tickets"
+      });
+      setTimeout(() => navigate("/login"), 1500);
+      return;
+    }
+    
     setSearch({ from: "Delhi", to, date: getToday() });
   };
 

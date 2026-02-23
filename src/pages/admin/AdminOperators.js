@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { adminOperatorAPI } from '../../services/adminApi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
@@ -41,13 +42,13 @@ export default function AdminOperators() {
 
       const response = await adminOperatorAPI.addOperator(data);
       if (response.data.success) {
-        alert(response.data.message);
+        toast.success(response.data.message);
         setShowAddModal(false);
         setFormData({ name: '', email: '', password: '', contactInfo: '' });
         setImageFile(null);
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to add operator');
+      toast.error(error.response?.data?.message || 'Failed to add operator');
     } finally {
       setLoading(false);
     }

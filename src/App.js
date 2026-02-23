@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 import Home from "./pages/Home";
 import SeatSelection from "./pages/SeatSelection";
 import SupportButton from "./components/SupportButton";
@@ -23,6 +24,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-center" richColors closeButton />
       <Routes>
         {/* Admin Routes - No Header/Footer */}
         <Route path="/admin/login" element={<AdminLogin />} />

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.5",
     "cra-template-pwa": "2.0.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
@@ -11,6 +12,7 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "react-scripts": "^5.0.1",
+    "sonner": "^2.0.7",
     "web-vitals": "^5.1.0"
   },
   "scripts": {

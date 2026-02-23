@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { authAPI } from "../services/authApi";
 
 export default function Header({ onHelpClick }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -32,11 +32,7 @@ export default function Header({ onHelpClick }) {
   }, []);
 
   const handleSignOut = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    setIsProfileOpen(false);
-    navigate("/");
-    window.location.reload();
+    authAPI.logout();
   };
 
   const navLinkClasses = "px-3 py-2 rounded-md text-sm font-medium transition-colors";

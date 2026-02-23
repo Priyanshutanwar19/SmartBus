@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authAPI } from "../services/authApi";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export default function Login() {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,6 +24,10 @@ export default function Login() {
         ...prev,
         [name]: ""
       }));
+    }
+    // Clear API error
+    if (apiError) {
+      setApiError("");
     }
   };
 
@@ -52,23 +58,29 @@ export default function Login() {
     }
 
     setIsLoading(true);
+    setApiError("");
 
-    // Simulating API call
-    setTimeout(() => {
-      console.log("Login data:", formData);
-      // Store user data in localStorage (for demo purposes)
-      const userData = {
+    try {
+      // Call backend API
+      const response = await authAPI.login({
         email: formData.email,
-        name: formData.email.split('@')[0], // Extract name from email
-        role: 'USER'
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
+        password: formData.password
+      });
+
+      if (response.success) {
+        // Store token and user data
+        localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        
+        // Redirect to home page
+        navigate("/");
+        window.location.reload();
+      }
+    } catch (error) {
+      setApiError(error.message || "Login failed. Please try again.");
+    } finally {
       setIsLoading(false);
-      // Redirect to home page (will now be personalized)
-      navigate("/");
-      // Reload to update header
-      window.location.reload();
-    }, 1000);
+    }
   };
 
   return (
@@ -85,6 +97,13 @@ export default function Login() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* API Error Message */}
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <p className="text-sm">{apiError}</p>
+              </div>
+            )}
+
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

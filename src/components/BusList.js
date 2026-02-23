@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import offers from "../data/offers.json";
 import operatorsData from "../data/operators.json";
 
@@ -161,7 +162,7 @@ export default function BusList({ from, to, date }) {
         })
         .catch(err => {
           console.error('Could not copy text: ', err);
-          alert('Failed to copy. Please copy manually.');
+          toast.error('Failed to copy. Please copy manually.');
         });
     } else {
       // Fallback for insecure contexts (like HTTP on a mobile device)
@@ -179,7 +180,7 @@ export default function BusList({ from, to, date }) {
         setTimeout(() => setCopied(null), 1200);
       } catch (err) {
         console.error('Fallback: Unable to copy', err);
-        alert('Failed to copy. Please copy manually.');
+        toast.error('Failed to copy. Please copy manually.');
       }
       document.body.removeChild(textArea);
     }
