@@ -1,4 +1,5 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const ADMIN_AUTH_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:3001';
 
 // Helper function to make API calls
 const apiRequest = async (endpoint, options = {}) => {
@@ -53,11 +54,30 @@ const apiRequest = async (endpoint, options = {}) => {
 
 // Auth APIs
 export const adminAuthAPI = {
-  login: (email, password) => 
-    apiRequest('/admin/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    }),
+  login: async (email, password) => {
+    try {
+      const response = await fetch(`${ADMIN_AUTH_URL}/admin/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const error = new Error(data.message || 'Login failed');
+        error.response = { data, status: response.status };
+        throw error;
+      }
+
+      return { data };
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 // User Management APIs
@@ -71,6 +91,11 @@ export const adminUserAPI = {
     apiRequest(`/admin/users/${id}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ role }),
+    }),
+  addAdmin: (name, email, password) => 
+    apiRequest('/admin/users/add-admin', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
     }),
 };
 

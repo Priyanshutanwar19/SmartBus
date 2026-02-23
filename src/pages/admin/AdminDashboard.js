@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { adminUserAPI } from '../../services/adminApi';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
@@ -12,6 +13,13 @@ export default function AdminDashboard() {
     users: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+  const [adminForm, setAdminForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -33,6 +41,30 @@ export default function AdminDashboard() {
       console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddAdmin = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    
+    try {
+      const response = await adminUserAPI.addAdmin(
+        adminForm.name,
+        adminForm.email,
+        adminForm.password
+      );
+      
+      if (response.data.success) {
+        toast.success('Admin user created successfully!');
+        setShowAddAdminModal(false);
+        setAdminForm({ name: '', email: '', password: '' });
+        fetchStats(); // Refresh stats
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create admin user');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -114,9 +146,87 @@ export default function AdminDashboard() {
                     <h3>Manage Operators</h3>
                     <p>Add and manage bus operators</p>
                   </a>
+
+                  <button 
+                    className="admin-action-card admin-action-button"
+                    onClick={() => setShowAddAdminModal(true)}
+                  >
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    <h3>Add Admin User</h3>
+                    <p>Create a new administrator account</p>
+                  </button>
                 </div>
               </div>
             </>
+          )}
+
+          {/* Add Admin Modal */}
+          {showAddAdminModal && (
+            <div className="admin-modal-overlay" onClick={() => setShowAddAdminModal(false)}>
+              <div className="admin-modal-content admin-add-admin-modal" onClick={(e) => e.stopPropagation()}>
+                <h2>Add New Admin User</h2>
+                <p>Create a new administrator account with full system access</p>
+                
+                <form onSubmit={handleAddAdmin}>
+                  <div className="admin-form-group">
+                    <label htmlFor="adminName">Full Name</label>
+                    <input
+                      type="text"
+                      id="adminName"
+                      value={adminForm.name}
+                      onChange={(e) => setAdminForm({ ...adminForm, name: e.target.value })}
+                      placeholder="Enter full name"
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label htmlFor="adminEmail">Email Address</label>
+                    <input
+                      type="email"
+                      id="adminEmail"
+                      value={adminForm.email}
+                      onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
+                      placeholder="Enter email address"
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label htmlFor="adminPassword">Password</label>
+                    <input
+                      type="password"
+                      id="adminPassword"
+                      value={adminForm.password}
+                      onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                      placeholder="Enter password"
+                      minLength="6"
+                      required
+                    />
+                  </div>
+
+                  <div className="admin-modal-actions">
+                    <button 
+                      type="button" 
+                      className="admin-btn-cancel" 
+                      onClick={() => setShowAddAdminModal(false)}
+                      disabled={submitting}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="admin-btn-submit"
+                      disabled={submitting}
+                    >
+                      {submitting ? 'Creating...' : 'Create Admin'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           )}
         </div>
       </div>
