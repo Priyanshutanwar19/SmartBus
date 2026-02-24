@@ -132,6 +132,13 @@
   font-size: 14px;
 }
 
+.operator-help-text {
+  color: #718096;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.5;
+}
+
 .operator-toggle-form-btn {
   background: none;
   border: none;

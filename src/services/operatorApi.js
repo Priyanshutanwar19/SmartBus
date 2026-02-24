@@ -56,7 +56,7 @@ const apiRequest = async (endpoint, options = {}) => {
 export const operatorAuthAPI = {
   login: async (email, password) => {
     try {
-      const response = await fetch(`${OPERATOR_AUTH_URL}/auth/login`, {
+      const response = await fetch(`${OPERATOR_AUTH_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,14 @@ export const operatorAuthAPI = {
         throw error;
       }
 
-      return { data };
+      // Check if user is an operator
+      if (data.user.role !== 'OPERATOR') {
+        const error = new Error('Access denied. Operators only.');
+        error.response = { data: { message: 'Access denied. Operators only.' }, status: 403 };
+        throw error;
+      }
+
+      return { data: { ...data, token: data.accessToken } };
     } catch (error) {
       throw error;
     }
@@ -81,7 +88,7 @@ export const operatorAuthAPI = {
 
   register: async (name, email, password, contactInfo) => {
     try {
-      const response = await fetch(`${OPERATOR_AUTH_URL}/auth/register`, {
+      const response = await fetch(`${OPERATOR_AUTH_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,9 +97,7 @@ export const operatorAuthAPI = {
         body: JSON.stringify({ 
           name, 
           email, 
-          password, 
-          contactInfo,
-          role: 'OPERATOR'
+          password
         }),
       });
 
@@ -129,33 +134,33 @@ export const operatorBusAPI = {
 
 // Bus Routes APIs
 export const operatorRouteAPI = {
-  getRoutes: () => apiRequest('/bus-routes'),
+  getRoutes: () => apiRequest('/routes'),
   
   addRoute: (routeData) => 
-    apiRequest('/bus-routes/add', {
+    apiRequest('/routes/add', {
       method: 'POST',
       body: JSON.stringify(routeData),
     }),
 
   searchRoutes: (query) => 
-    apiRequest(`/bus-routes/search?${query}`),
+    apiRequest(`/routes/search?${query}`),
 };
 
 // Bus Schedule APIs
 export const operatorScheduleAPI = {
-  getSchedules: () => apiRequest('/bus-schedule'),
+  getSchedules: () => apiRequest('/bus-schedules'),
   
   getSchedulesByBus: (busId) =>
-    apiRequest(`/bus-schedule/bus/${busId}`),
+    apiRequest(`/bus-schedules/bus/${busId}`),
   
   addSchedule: (scheduleData) => 
-    apiRequest('/bus-schedule/add', {
+    apiRequest('/bus-schedules/add', {
       method: 'POST',
       body: JSON.stringify(scheduleData),
     }),
 
   searchSchedules: (query) =>
-    apiRequest(`/bus-schedule/search?${query}`),
+    apiRequest(`/bus-schedules/search?${query}`),
 };
 
 const operatorApi = { 
