@@ -1,0 +1,79 @@
+.operator-schedules-header {
+  margin-bottom: 24px;
+}
+
+.operator-schedules-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.operator-schedules-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.operator-schedules-table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.operator-schedules-table th {
+  padding: 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.operator-schedules-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+}
+
+.operator-schedules-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.operator-schedules-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.operator-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.operator-status.active {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.operator-status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 768px) {
+  .operator-schedules-table {
+    overflow-x: auto;
+  }
+
+  .operator-schedules-table table {
+    min-width: 600px;
+  }
+
+  .operator-schedules-table th,
+  .operator-schedules-table td {
+    padding: 12px;
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,148 @@
+.operator-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.operator-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.operator-content {
+  padding: 24px;
+  flex: 1;
+}
+
+.operator-loading {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+}
+
+.operator-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.operator-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
+}
+
+.operator-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.operator-stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.operator-stat-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #718096;
+  margin: 0;
+}
+
+.operator-stat-header svg {
+  width: 24px;
+  height: 24px;
+  color: #10b981;
+}
+
+.operator-stat-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1a202c;
+  line-height: 1;
+}
+
+.operator-info-section {
+  margin-top: 40px;
+}
+
+.operator-info-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 20px;
+}
+
+.operator-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.operator-action-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.operator-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.operator-action-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.operator-action-icon svg {
+  width: 28px;
+  height: 28px;
+  color: white;
+}
+
+.operator-action-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 8px;
+}
+
+.operator-action-card p {
+  color: #718096;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .operator-layout {
+    flex-direction: column;
+  }
+
+  .operator-content {
+    padding: 16px;
+  }
+
+  .operator-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .operator-quick-actions {
+    grid-template-columns: 1fr;
+  }
+}
