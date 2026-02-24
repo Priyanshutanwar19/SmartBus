@@ -18,6 +18,12 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminOperators from "./pages/admin/AdminOperators";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
+import OperatorLogin from "./pages/operator/OperatorLogin";
+import OperatorDashboard from "./pages/operator/OperatorDashboard";
+import OperatorBuses from "./pages/operator/OperatorBuses";
+import OperatorRoutes from "./pages/operator/OperatorRoutes";
+import OperatorSchedules from "./pages/operator/OperatorSchedules";
+import OperatorProtectedRoute from "./components/operator/OperatorProtectedRoute";
 
 function App() {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
@@ -31,6 +37,13 @@ function App() {
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
         <Route path="/admin/operators" element={<ProtectedRoute><AdminOperators /></ProtectedRoute>} />
+
+        {/* Operator Routes - No Header/Footer */}
+        <Route path="/operator/login" element={<OperatorLogin />} />
+        <Route path="/operator/dashboard" element={<OperatorProtectedRoute><OperatorDashboard /></OperatorProtectedRoute>} />
+        <Route path="/operator/buses" element={<OperatorProtectedRoute><OperatorBuses /></OperatorProtectedRoute>} />
+        <Route path="/operator/routes" element={<OperatorProtectedRoute><OperatorRoutes /></OperatorProtectedRoute>} />
+        <Route path="/operator/schedules" element={<OperatorProtectedRoute><OperatorSchedules /></OperatorProtectedRoute>} />
 
         {/* Main App Routes - With Header/Footer */}
         <Route

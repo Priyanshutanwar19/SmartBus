@@ -1,0 +1,152 @@
+.operator-sidebar {
+  width: 260px;
+  background: #1a202c;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.operator-sidebar-header {
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.operator-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.operator-logo svg {
+  width: 32px;
+  height: 32px;
+  color: #10b981;
+}
+
+.operator-logo span {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.operator-menu {
+  flex: 1;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.operator-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #a0aec0;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.operator-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.operator-menu-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.operator-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.operator-menu-item.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.operator-sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.operator-user-section {
+  margin-bottom: 16px;
+}
+
+.operator-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.operator-user-email {
+  font-size: 12px;
+  color: #a0aec0;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operator-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #a0aec0;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.operator-logout-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.operator-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+@media (max-width: 768px) {
+  .operator-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .operator-menu {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 12px;
+  }
+
+  .operator-menu-item span:not(.operator-menu-icon),
+  .operator-logout-btn span {
+    display: none;
+  }
+
+  .operator-menu-item,
+  .operator-logout-btn {
+    justify-content: center;
+    min-width: 48px;
+  }
+}
