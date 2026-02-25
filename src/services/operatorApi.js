@@ -163,11 +163,36 @@ export const operatorScheduleAPI = {
     apiRequest(`/bus-schedules/search?${query}`),
 };
 
+// City Management APIs
+export const operatorCityAPI = {
+  getCities: (query = '') => apiRequest(`/cities?q=${query}`),
+  
+  getStates: () => apiRequest('/cities/states'),
+  
+  addState: (name) => 
+    apiRequest('/cities/states/add', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+  
+  addCity: (formData) => 
+    apiRequest('/cities/add', {
+      method: 'POST',
+      body: formData,
+    }),
+
+  removeCity: (id) => 
+    apiRequest(`/cities/remove/${id}`, {
+      method: 'DELETE',
+    }),
+};
+
 const operatorApi = { 
   operatorAuthAPI, 
   operatorBusAPI,
   operatorRouteAPI,
   operatorScheduleAPI,
+  operatorCityAPI,
 };
 
 export default operatorApi;
