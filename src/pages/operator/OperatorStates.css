@@ -1,4 +1,4 @@
-.operator-cities-header {
+.operator-states-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,56 +30,61 @@
   box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
 }
 
-.operator-cities-grid {
+.operator-states-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;
 }
 
-.operator-city-card {
+.operator-state-card {
   background: white;
   border-radius: 12px;
-  overflow: hidden;
+  padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.operator-city-card:hover {
+.operator-state-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.operator-city-image {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
-.operator-city-info {
-  padding: 1.25rem;
-}
-
-.operator-city-info h3 {
+.operator-state-info h3 {
   margin: 0 0 0.5rem 0;
   font-size: 1.25rem;
   color: #1a1a1a;
+  font-weight: 600;
 }
 
-.operator-city-state {
-  margin: 0 0 0.5rem 0;
+.operator-state-cities {
+  margin: 0;
   color: #666;
   font-size: 0.9rem;
 }
 
-.operator-city-caption {
-  margin: 0;
-  color: #888;
-  font-size: 0.85rem;
-  font-style: italic;
+.operator-loading {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
 }
 
-.file-name {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: #10b981;
+.operator-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.operator-empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1a1a1a;
+  font-size: 1.5rem;
+}
+
+.operator-empty-state p {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
 }

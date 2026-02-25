@@ -60,6 +60,12 @@ export default function OperatorCities() {
         formDataToSend.append('image', image);
       }
 
+      console.log('Submitting:', {
+        cityName: formData.cityName,
+        stateId: formData.stateId,
+        hasImage: !!image
+      });
+
       const response = await operatorCityAPI.addCity(formDataToSend);
       if (response.data.success) {
         toast.success('City added successfully!');
@@ -69,6 +75,7 @@ export default function OperatorCities() {
         fetchData();
       }
     } catch (error) {
+      console.error('Error adding city:', error);
       toast.error(error.response?.data?.message || 'Failed to add city');
     } finally {
       setSubmitting(false);

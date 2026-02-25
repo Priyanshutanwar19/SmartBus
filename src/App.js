@@ -21,6 +21,7 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 import OperatorLogin from "./pages/operator/OperatorLogin";
 import OperatorDashboard from "./pages/operator/OperatorDashboard";
 import OperatorBuses from "./pages/operator/OperatorBuses";
+import OperatorStates from "./pages/operator/OperatorStates";
 import OperatorCities from "./pages/operator/OperatorCities";
 import OperatorRoutes from "./pages/operator/OperatorRoutes";
 import OperatorSchedules from "./pages/operator/OperatorSchedules";
@@ -43,6 +44,7 @@ function App() {
         <Route path="/operator/login" element={<OperatorLogin />} />
         <Route path="/operator/dashboard" element={<OperatorProtectedRoute><OperatorDashboard /></OperatorProtectedRoute>} />
         <Route path="/operator/buses" element={<OperatorProtectedRoute><OperatorBuses /></OperatorProtectedRoute>} />
+        <Route path="/operator/states" element={<OperatorProtectedRoute><OperatorStates /></OperatorProtectedRoute>} />
         <Route path="/operator/cities" element={<OperatorProtectedRoute><OperatorCities /></OperatorProtectedRoute>} />
         <Route path="/operator/routes" element={<OperatorProtectedRoute><OperatorRoutes /></OperatorProtectedRoute>} />
         <Route path="/operator/schedules" element={<OperatorProtectedRoute><OperatorSchedules /></OperatorProtectedRoute>} />
