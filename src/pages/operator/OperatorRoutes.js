@@ -1,39 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { operatorRouteAPI } from '../../services/operatorApi';
+import { operatorRouteAPI, operatorCityAPI } from '../../services/operatorApi';
 import OperatorSidebar from '../../components/operator/OperatorSidebar';
 import OperatorHeader from '../../components/operator/OperatorHeader';
 import './OperatorRoutes.css';
 
 export default function OperatorRoutes() {
   const [routes, setRoutes] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    routeName: '',
-    startCity: '',
-    endCity: '',
-    distance: '',
-    estimatedDuration: '',
-    routeDescription: '',
+    cityAId: '',
+    cityBId: '',
+    distanceKm: '',
+    durationMinutes: '',
   });
 
   useEffect(() => {
-    fetchRoutes();
+    fetchData();
   }, []);
 
-  const fetchRoutes = async () => {
+  const fetchData = async () => {
     try {
-      const response = await operatorRouteAPI.getRoutes();
-      setRoutes(response.data?.routes || []);
+      const [routesRes, citiesRes] = await Promise.all([
+        operatorRouteAPI.getRoutes(),
+        operatorCityAPI.getCities(),
+      ]);
+      setRoutes(routesRes.data?.routes || []);
+      setCities(citiesRes.data?.cities || []);
     } catch (error) {
-      console.error('Error fetching routes:', error);
-      toast.error('Failed to fetch routes');
+      console.error('Error fetching data:', error);
+      toast.error('Failed to fetch data');
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,8 +51,10 @@ export default function OperatorRoutes() {
 
     try {
       const routeData = {
-        ...formData,
-        distance: parseFloat(formData.distance),
+        cityAId: parseInt(formData.cityAId),
+        cityBId: parseInt(formData.cityBId),
+        distanceKm: parseFloat(formData.distanceKm),
+        durationMinutes: parseInt(formData.durationMinutes),
       };
 
       const response = await operatorRouteAPI.addRoute(routeData);
@@ -55,14 +62,12 @@ export default function OperatorRoutes() {
         toast.success('Route added successfully!');
         setShowAddModal(false);
         setFormData({
-          routeName: '',
-          startCity: '',
-          endCity: '',
-          distance: '',
-          estimatedDuration: '',
-          routeDescription: '',
+          cityAId: '',
+          cityBId: '',
+          distanceKm: '',
+          durationMinutes: '',
         });
-        fetchRoutes();
+        fetchData();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add route');
@@ -101,7 +106,7 @@ export default function OperatorRoutes() {
               {routes.map((route) => (
                 <div key={route.id} className="operator-route-card">
                   <div className="operator-route-header">
-                    <h3>{route.routeName}</h3>
+                    <h3>{route.cityA} ↔ {route.cityB}</h3>
                   </div>
                   <div className="operator-route-content">
                     <div className="operator-route-path">
@@ -109,17 +114,17 @@ export default function OperatorRoutes() {
                         <div className="operator-city-dot"></div>
                         <div>
                           <div className="operator-city-label">Start</div>
-                          <div className="operator-city-name">{route.startCity}</div>
+                          <div className="operator-city-name">{route.cityA}</div>
                         </div>
                       </div>
                       <div className="operator-route-line">
-                        <div className="operator-route-distance">{route.distance} km</div>
+                        <div className="operator-route-distance">{route.distanceKm} km</div>
                       </div>
                       <div className="operator-route-city">
                         <div className="operator-city-dot"></div>
                         <div>
                           <div className="operator-city-label">End</div>
-                          <div className="operator-city-name">{route.endCity}</div>
+                          <div className="operator-city-name">{route.cityB}</div>
                         </div>
                       </div>
                     </div>
@@ -127,14 +132,8 @@ export default function OperatorRoutes() {
                   <div className="operator-route-details">
                     <div className="operator-route-detail">
                       <span className="label">Duration:</span>
-                      <span className="value">{route.estimatedDuration}</span>
+                      <span className="value">{route.estimatedDuration ? `${route.estimatedDuration} min` : 'N/A'}</span>
                     </div>
-                    {route.routeDescription && (
-                      <div className="operator-route-detail">
-                        <span className="label">Description:</span>
-                        <span className="value">{route.routeDescription}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
@@ -156,41 +155,39 @@ export default function OperatorRoutes() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="operator-modal-form">
-                  <div className="operator-form-group">
-                    <label>Route Name</label>
-                    <input
-                      type="text"
-                      name="routeName"
-                      value={formData.routeName}
-                      onChange={handleChange}
-                      placeholder="e.g., Bangalore to Mysore"
-                      required
-                    />
-                  </div>
-
                   <div className="operator-form-row">
                     <div className="operator-form-group">
                       <label>Start City</label>
-                      <input
-                        type="text"
-                        name="startCity"
-                        value={formData.startCity}
+                      <select
+                        name="cityAId"
+                        value={formData.cityAId}
                         onChange={handleChange}
-                        placeholder="e.g., Bangalore"
                         required
-                      />
+                      >
+                        <option value="">Select Start City</option>
+                        {cities.map((city) => (
+                          <option key={city.id} value={city.id}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="operator-form-group">
                       <label>End City</label>
-                      <input
-                        type="text"
-                        name="endCity"
-                        value={formData.endCity}
+                      <select
+                        name="cityBId"
+                        value={formData.cityBId}
                         onChange={handleChange}
-                        placeholder="e.g., Mysore"
                         required
-                      />
+                      >
+                        <option value="">Select End City</option>
+                        {cities.map((city) => (
+                          <option key={city.id} value={city.id}>
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -199,8 +196,8 @@ export default function OperatorRoutes() {
                       <label>Distance (km)</label>
                       <input
                         type="number"
-                        name="distance"
-                        value={formData.distance}
+                        name="distanceKm"
+                        value={formData.distanceKm}
                         onChange={handleChange}
                         placeholder="e.g., 120"
                         step="0.1"
@@ -210,27 +207,17 @@ export default function OperatorRoutes() {
                     </div>
 
                     <div className="operator-form-group">
-                      <label>Estimated Duration</label>
+                      <label>Duration (minutes)</label>
                       <input
-                        type="text"
-                        name="estimatedDuration"
-                        value={formData.estimatedDuration}
+                        type="number"
+                        name="durationMinutes"
+                        value={formData.durationMinutes}
                         onChange={handleChange}
-                        placeholder="e.g., 2h 30min"
+                        placeholder="e.g., 150"
+                        min="0"
                         required
                       />
                     </div>
-                  </div>
-
-                  <div className="operator-form-group">
-                    <label>Route Description (Optional)</label>
-                    <textarea
-                      name="routeDescription"
-                      value={formData.routeDescription}
-                      onChange={handleChange}
-                      placeholder="e.g., Highway route via Tumkur"
-                      rows="3"
-                    />
                   </div>
 
                   <div className="operator-modal-actions">
