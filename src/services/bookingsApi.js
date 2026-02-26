@@ -24,7 +24,7 @@ export const bookingsAPI = {
 
   // Get user's bookings
   getMyBookings: async () => {
-    return await apiRequest('/bookings/my-bookings');
+    return await apiRequest('/bookings/');
   },
 
   // Get booking by ID
