@@ -24,10 +24,11 @@ export default function OperatorBuses() {
   const fetchBuses = async () => {
     try {
       const response = await operatorBusAPI.getBuses();
-      console.log('Buses response:', response.data);
-      // Backend returns { buses: { operator: {...}, buses: [...] } }
-      const busesData = response.data?.buses;
-      setBuses(busesData?.buses || []);
+      // API returns { buses: { operator, buses: [...] } }
+      const busArray = Array.isArray(response.data?.buses?.buses)
+        ? response.data.buses.buses
+        : [];
+      setBuses(busArray);
     } catch (error) {
       console.error('Error fetching buses:', error);
       toast.error('Failed to fetch buses');
@@ -47,11 +48,13 @@ export default function OperatorBuses() {
     setSubmitting(true);
 
     try {
+      // Map form fields to backend API keys
       const busData = {
         busNumber: formData.registrationNumber,
         busModel: formData.model,
-        totalSeats: parseInt(formData.totalSeats),
         busType: formData.type,
+        totalSeats: parseInt(formData.totalSeats),
+        features: formData.features,
       };
 
       const response = await operatorBusAPI.addBus(busData);
@@ -115,26 +118,46 @@ export default function OperatorBuses() {
           ) : (
             <div className="operator-buses-grid">
               {buses.map((bus) => (
-                <div key={bus.busId} className="operator-bus-card">
+                <div key={bus.busId || bus.id} className="operator-bus-card">
                   <div className="operator-bus-header">
-                    <h3>{bus.busModel || 'No Model'}</h3>
-                    <span className={`operator-bus-type ${bus.busType?.toLowerCase()}`}>
-                      {bus.busType}
-                    </span>
+                    {/* Show bus model if not null/empty */}
+                    {bus.busModel && <h3>{bus.busModel}</h3>}
+                    {bus.busType && (
+                      <span
+                        className={`operator-bus-type badge-bus-type`}
+                        style={{
+                          marginLeft: '8px',
+                          textTransform: 'uppercase',
+                          background: '#e6f0ff',
+                          color: '#2563eb',
+                          borderRadius: '8px',
+                          padding: '2px 12px',
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          display: 'inline-block',
+                        }}
+                      >
+                        {bus.busType}
+                      </span>
+                    )}
                   </div>
                   <div className="operator-bus-details">
                     <div className="operator-bus-detail">
-                      <span className="label">Registration:</span>
+                      <span className="label">Bus Number:</span>
                       <span className="value">{bus.busNumber}</span>
                     </div>
                     <div className="operator-bus-detail">
-                      <span className="label">Total Seats:</span>
+                      <span className="label">Bus Type:</span>
+                      <span className="value">{bus.busType}</span>
+                    </div>
+                    <div className="operator-bus-detail">
+                      <span className="label">Number of Seats:</span>
                       <span className="value">{bus.totalSeats}</span>
                     </div>
                   </div>
                   <button
                     className="operator-delete-btn"
-                    onClick={() => handleDeleteBus(bus.busId)}
+                    onClick={() => handleDeleteBus(bus.busId || bus.id)}
                   >
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -208,8 +231,8 @@ export default function OperatorBuses() {
                         required
                       >
                         <option value="AC">AC</option>
-                        <option value="NON_AC">Non-AC</option>
-                        <option value="SLEEPER">Sleeper</option>
+                        <option value="NON_AC">NON_AC</option>
+                        <option value="SLEEPER">SLEEPER</option>
                       </select>
                     </div>
                   </div>
