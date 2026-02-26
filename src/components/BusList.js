@@ -1,10 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import offers from "../data/offers.json";
-import operatorsData from "../data/operators.json";
-
-const operators = operatorsData.default || operatorsData;
+import busSchedulesAPI from "../services/busSchedulesApi";
+import citiesAPI from "../services/citiesApi";
 
 const timeSlots = [
   "06:00 AM", "07:30 AM", "09:00 AM", "10:45 AM", "12:00 PM", "01:30 PM", "03:00 PM", "04:15 PM", "06:00 PM", "07:45 PM", "09:00 PM", "10:30 PM", "11:45 PM"
@@ -93,42 +91,95 @@ function addHoursAndMinutes(time, hoursToAdd) {
 export default function BusList({ from, to, date }) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(null);
-  const [distance, setDistance] = useState(null);
+  const [buses, setBuses] = useState([]);
+  const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('price'); // 'price', 'time', 'operator'
+  const [sortBy, setSortBy] = useState('price');
   const [filterOperator, setFilterOperator] = useState('all');
 
+  // Fetch cities list
   useEffect(() => {
-    async function fetchDistance() {
-      if (from && to) {
-        setIsLoading(true);
-        const dist = await getLiveDistance(from, to);
-        setDistance(dist);
+    const fetchCities = async () => {
+      try {
+        const response = await citiesAPI.getAllCities();
+        setCities(response.cities || []);
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  // Fetch bus schedules when search criteria changes
+  useEffect(() => {
+    const fetchBusSchedules = async () => {
+      if (!from || !to || !date || cities.length === 0) return;
+
+      setIsLoading(true);
+      try {
+        // Find city IDs from city names
+        const fromCity = cities.find(c => c.name.toLowerCase() === from.toLowerCase());
+        const toCity = cities.find(c => c.name.toLowerCase() === to.toLowerCase());
+
+        if (!fromCity || !toCity) {
+          toast.error('Selected cities not found in database');
+          setBuses([]);
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch schedules from backend
+        const response = await busSchedulesAPI.searchSchedules(
+          fromCity.id,
+          toCity.id,
+          date
+        );
+
+        const schedules = response.schedules || [];
+        
+        // Map backend data to frontend format
+        const mappedBuses = schedules.map((schedule, index) => ({
+          id: schedule.id,
+          scheduleId: schedule.id,
+          operator: schedule.operatorName || 'Unknown Operator',
+          logo: '/images/bus-default.png',
+          busNumber: schedule.busNumber,
+          busType: schedule.busType,
+          time: new Date(schedule.departureTime).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+          arrival: new Date(schedule.arrivalTime).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+          departureTime: schedule.departureTime,
+          arrivalTime: schedule.arrivalTime,
+          price: schedule.basePrice,
+          distance: schedule.distanceKm,
+          from: schedule.fromCity,
+          to: schedule.toCity,
+          offer: null, // Can add offers later
+        }));
+
+        setBuses(mappedBuses);
+      } catch (error) {
+        console.error('Error fetching bus schedules:', error);
+        toast.error(error.message || 'Failed to fetch bus schedules');
+        setBuses([]);
+      } finally {
         setIsLoading(false);
       }
-    }
-    fetchDistance();
-  }, [from, to]);
+    };
 
-  const buses = useMemo(() => {
-    if (!distance) return [];
-    let busList = Array.from({ length: 12 }, (_, i) => {
-      const op = operators[i % operators.length];
-      const offer = offers[Math.floor(Math.random() * offers.length)];
-      const depTime = getRandomTime(i);
-      const travelHours = distance / 50; // 50 km/h
-      const arrTime = addHoursAndMinutes(depTime, travelHours);
-      return {
-        id: i + 1,
-        operator: op.name,
-        logo: op.logo,
-        time: depTime,
-        arrival: arrTime,
-        price: calculateFare(distance, op.name),
-        offer,
-        distance // pass distance to next component
-      };
-    });
+    fetchBusSchedules();
+  }, [from, to, date, cities]);
+
+  // Sort and filter buses
+  const filteredAndSortedBuses = useMemo(() => {
+    let busList = [...buses];
 
     // Filter by operator
     if (filterOperator !== 'all') {
@@ -141,7 +192,7 @@ export default function BusList({ from, to, date }) {
         case 'price':
           return a.price - b.price;
         case 'time':
-          return a.time.localeCompare(b.time);
+          return new Date(a.departureTime) - new Date(b.departureTime);
         case 'operator':
           return a.operator.localeCompare(b.operator);
         default:
@@ -150,7 +201,7 @@ export default function BusList({ from, to, date }) {
     });
 
     return busList;
-  }, [distance, sortBy, filterOperator]);
+  }, [buses, sortBy, filterOperator]);
 
   function handleCopy(code, id) {
     // Check for secure context and clipboard API availability
@@ -187,7 +238,16 @@ export default function BusList({ from, to, date }) {
   }
 
   if (isLoading) {
-    return <div className="text-center my-10">Calculating fares based on live distance...</div>;
+    return <div className="text-center my-10">Loading bus schedules...</div>;
+  }
+
+  if (buses.length === 0) {
+    return (
+      <div className="text-center my-10">
+        <h3 className="text-xl font-semibold text-gray-700">No buses found</h3>
+        <p className="text-gray-500 mt-2">No schedules available for this route on the selected date.</p>
+      </div>
+    );
   }
 
   return (
@@ -224,13 +284,13 @@ export default function BusList({ from, to, date }) {
           </div>
         </div>
         <div className="text-sm text-gray-600">
-          {buses.length} bus{buses.length !== 1 ? 'es' : ''} found
+          {filteredAndSortedBuses.length} bus{filteredAndSortedBuses.length !== 1 ? 'es' : ''} found
         </div>
       </div>
       
       {/* Mobile Cards View */}
       <div className="md:hidden space-y-4">
-        {buses.map(bus => (
+        {filteredAndSortedBuses.map(bus => (
           <div key={bus.id} className="bg-white rounded-lg shadow-md p-4 border">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
@@ -243,7 +303,7 @@ export default function BusList({ from, to, date }) {
                 />
                 <div>
                   <div className="font-semibold text-gray-900">{bus.operator}</div>
-                  <div className="text-sm text-gray-500">{distance} km</div>
+                  <div className="text-sm text-gray-500">{bus.distance} km • {bus.busNumber}</div>
                 </div>
               </div>
               <div className="text-right">
@@ -282,7 +342,7 @@ export default function BusList({ from, to, date }) {
             
             <button
               className="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-green-700 transition"
-              onClick={() => navigate(`/book/${bus.id}`, { state: { bus, from, to, date } })}
+              onClick={() => navigate('/seat-selection', { state: { bus, from, to, date, scheduleId: bus.scheduleId } })}
             >
               Book Now
             </button>
@@ -304,7 +364,7 @@ export default function BusList({ from, to, date }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {buses.map((bus, index) => (
+            {filteredAndSortedBuses.map((bus, index) => (
               <tr 
                 key={bus.id} 
                 className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 ease-in-out transform hover:scale-[1.01] hover:shadow-md border-l-4 border-l-transparent hover:border-l-blue-500"
@@ -323,7 +383,7 @@ export default function BusList({ from, to, date }) {
                   </div>
                   <div>
                     <div className="text-gray-900 group-hover:text-blue-700 transition-colors duration-300">{bus.operator}</div>
-                    <div className="text-xs text-gray-500">{distance} km • {Math.round(distance/50)}h journey</div>
+                    <div className="text-xs text-gray-500">{bus.distance} km • {bus.busNumber} • {bus.busType}</div>
                   </div>
                 </td>
                 <td className="p-4">
@@ -379,7 +439,7 @@ export default function BusList({ from, to, date }) {
                 <td className="p-4">
                   <button
                     className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg px-6 py-3 font-semibold hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2 group"
-                    onClick={() => navigate(`/book/${bus.id}`, { state: { bus, from, to, date } })}
+                    onClick={() => navigate('/seat-selection', { state: { bus, from, to, date, scheduleId: bus.scheduleId } })}
                   >
                     <span>Book Now</span>
                     <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

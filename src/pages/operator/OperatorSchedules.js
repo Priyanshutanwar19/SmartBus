@@ -84,9 +84,10 @@ export default function OperatorSchedules() {
     }
   };
 
-  const getBusModel = (busId) => {
+  const getBusInfo = (busId) => {
     const bus = buses.find(b => b.busId === busId);
-    return bus ? bus.busModel : 'Unknown Bus';
+    if (!bus) return { number: 'N/A', model: 'Unknown Bus' };
+    return { number: bus.busNumber, model: bus.busModel };
   };
 
   return (
@@ -128,10 +129,15 @@ export default function OperatorSchedules() {
                   </tr>
                 </thead>
                 <tbody>
-                  {schedules.map((schedule) => (
+                  {schedules.map((schedule) => {
+                    const busInfo = getBusInfo(schedule.busId);
+                    return (
                     <tr key={schedule.id}>
                       <td>{schedule.from} → {schedule.to}</td>
-                      <td>{getBusModel(schedule.busId)}</td>
+                      <td>
+                        <div style={{ fontSize: '14px', fontWeight: '600' }}>{busInfo.model}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>{busInfo.number}</div>
+                      </td>
                       <td>{new Date(schedule.departureTime).toLocaleString()}</td>
                       <td>{new Date(schedule.arrivalTime).toLocaleString()}</td>
                       <td>₹{schedule.basePrice}</td>
@@ -141,7 +147,8 @@ export default function OperatorSchedules() {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>

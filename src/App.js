@@ -58,7 +58,7 @@ function App() {
               <div className="flex-1">
                 <Routes>
                   <Route path="/" element={<Home />} />
-                  <Route path="/book/:busId" element={<SeatSelection />} />
+                  <Route path="/seat-selection" element={<SeatSelection />} />
                   <Route path="/passenger" element={<PassengerDetails />} />
                   <Route path="/ticket" element={<TicketSummary />} />
                   <Route path="/manage-booking" element={<ManageBooking />} />

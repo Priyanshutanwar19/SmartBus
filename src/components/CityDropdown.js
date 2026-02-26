@@ -14,17 +14,17 @@ export default function CityDropdown({ label, value, onChange }) {
       try {
         const response = await citiesAPI.getAllCities();
         if (response.success && response.cities) {
-          // Extract city names from the response
-          const cityList = response.cities.map(city => city.name).sort();
+          // Store full city objects with id and name
+          const cityList = response.cities.sort((a, b) => a.name.localeCompare(b.name));
           setCities(cityList);
         } else {
-          // Use fallback cities
-          setCities(fallbackCities);
+          // Use fallback cities (convert to objects)
+          setCities(fallbackCities.map((name, index) => ({ id: `fallback-${index}`, name })));
         }
       } catch (error) {
         console.error("Failed to fetch cities:", error);
-        // Use fallback cities on error
-        setCities(fallbackCities);
+        // Use fallback cities on error (convert to objects)
+        setCities(fallbackCities.map((name, index) => ({ id: `fallback-${index}`, name })));
       } finally {
         setLoading(false);
       }
@@ -48,7 +48,7 @@ export default function CityDropdown({ label, value, onChange }) {
         >
           <option value="">Select City</option>
           {cities.map(city => (
-            <option key={city} value={city}>{city}</option>
+            <option key={city.id} value={city.name}>{city.name}</option>
           ))}
         </select>
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
