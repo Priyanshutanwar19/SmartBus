@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { operatorScheduleAPI, operatorBusAPI, operatorRouteAPI } from '../../services/operatorApi';
+import { operatorScheduleAPI, operatorBusAPI, operatorCityAPI } from '../../services/operatorApi';
 import OperatorSidebar from '../../components/operator/OperatorSidebar';
 import OperatorHeader from '../../components/operator/OperatorHeader';
 import './OperatorSchedules.css';
@@ -8,17 +8,17 @@ import './OperatorSchedules.css';
 export default function OperatorSchedules() {
   const [schedules, setSchedules] = useState([]);
   const [buses, setBuses] = useState([]);
-  const [routes, setRoutes] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     busId: '',
-    routeId: '',
+    fromCityId: '',
+    toCityId: '',
     departureTime: '',
     arrivalTime: '',
-    price: '',
-    status: 'ACTIVE',
+    basePrice: '',
   });
 
   useEffect(() => {
@@ -27,15 +27,15 @@ export default function OperatorSchedules() {
 
   const fetchData = async () => {
     try {
-      const [schedulesRes, busesRes, routesRes] = await Promise.all([
+      const [schedulesRes, busesRes, citiesRes] = await Promise.all([
         operatorScheduleAPI.getSchedules(),
         operatorBusAPI.getBuses(),
-        operatorRouteAPI.getRoutes(),
+        operatorCityAPI.getCities(),
       ]);
 
       setSchedules(schedulesRes.data?.schedules || []);
       setBuses(busesRes.data?.buses?.buses || []);
-      setRoutes(routesRes.data?.routes || []);
+      setCities(citiesRes.data?.cities || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to fetch schedules');
@@ -55,8 +55,12 @@ export default function OperatorSchedules() {
 
     try {
       const scheduleData = {
-        ...formData,
-        price: parseFloat(formData.price),
+        busId: parseInt(formData.busId),
+        fromCityId: parseInt(formData.fromCityId),
+        toCityId: parseInt(formData.toCityId),
+        departureTime: formData.departureTime,
+        arrivalTime: formData.arrivalTime,
+        basePrice: parseFloat(formData.basePrice),
       };
 
       const response = await operatorScheduleAPI.addSchedule(scheduleData);
@@ -65,11 +69,11 @@ export default function OperatorSchedules() {
         setShowAddModal(false);
         setFormData({
           busId: '',
-          routeId: '',
+          fromCityId: '',
+          toCityId: '',
           departureTime: '',
           arrivalTime: '',
-          price: '',
-          status: 'ACTIVE',
+          basePrice: '',
         });
         fetchData();
       }
@@ -78,11 +82,6 @@ export default function OperatorSchedules() {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const getRouteName = (routeId) => {
-    const route = routes.find(r => r.id === routeId);
-    return route ? `${route.cityA} - ${route.cityB}` : 'Unknown Route';
   };
 
   const getBusModel = (busId) => {
@@ -131,11 +130,11 @@ export default function OperatorSchedules() {
                 <tbody>
                   {schedules.map((schedule) => (
                     <tr key={schedule.id}>
-                      <td>{getRouteName(schedule.routeId)}</td>
+                      <td>{schedule.from} → {schedule.to}</td>
                       <td>{getBusModel(schedule.busId)}</td>
-                      <td>{schedule.departureTime}</td>
-                      <td>{schedule.arrivalTime}</td>
-                      <td>₹{schedule.price}</td>
+                      <td>{new Date(schedule.departureTime).toLocaleString()}</td>
+                      <td>{new Date(schedule.arrivalTime).toLocaleString()}</td>
+                      <td>₹{schedule.basePrice}</td>
                       <td>
                         <span className={`operator-status ${schedule.status?.toLowerCase()}`}>
                           {schedule.status}
@@ -181,17 +180,34 @@ export default function OperatorSchedules() {
                   </div>
 
                   <div className="operator-form-group">
-                    <label>Select Route</label>
+                    <label>From City</label>
                     <select
-                      name="routeId"
-                      value={formData.routeId}
+                      name="fromCityId"
+                      value={formData.fromCityId}
                       onChange={handleChange}
                       required
                     >
-                      <option value="">Choose a route...</option>
-                      {routes.map((route) => (
-                        <option key={route.id} value={route.id}>
-                          {route.cityA} - {route.cityB} ({route.distanceKm} km)
+                      <option value="">Select departure city...</option>
+                      {cities.map((city) => (
+                        <option key={city.id} value={city.id}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="operator-form-group">
+                    <label>To City</label>
+                    <select
+                      name="toCityId"
+                      value={formData.toCityId}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select arrival city...</option>
+                      {cities.map((city) => (
+                        <option key={city.id} value={city.id}>
+                          {city.name}
                         </option>
                       ))}
                     </select>
@@ -201,7 +217,7 @@ export default function OperatorSchedules() {
                     <div className="operator-form-group">
                       <label>Departure Time</label>
                       <input
-                        type="time"
+                        type="datetime-local"
                         name="departureTime"
                         value={formData.departureTime}
                         onChange={handleChange}
@@ -212,7 +228,7 @@ export default function OperatorSchedules() {
                     <div className="operator-form-group">
                       <label>Arrival Time</label>
                       <input
-                        type="time"
+                        type="datetime-local"
                         name="arrivalTime"
                         value={formData.arrivalTime}
                         onChange={handleChange}
@@ -221,33 +237,18 @@ export default function OperatorSchedules() {
                     </div>
                   </div>
 
-                  <div className="operator-form-row">
-                    <div className="operator-form-group">
-                      <label>Price (₹)</label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleChange}
-                        placeholder="e.g., 500"
-                        step="0.01"
-                        min="0"
-                        required
-                      />
-                    </div>
-
-                    <div className="operator-form-group">
-                      <label>Status</label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="ACTIVE">Active</option>
-                        <option value="INACTIVE">Inactive</option>
-                      </select>
-                    </div>
+                  <div className="operator-form-group">
+                    <label>Base Price (₹)</label>
+                    <input
+                      type="number"
+                      name="basePrice"
+                      value={formData.basePrice}
+                      onChange={handleChange}
+                      placeholder="e.g., 500"
+                      step="0.01"
+                      min="0"
+                      required
+                    />
                   </div>
 
                   <div className="operator-modal-actions">
