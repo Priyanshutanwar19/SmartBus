@@ -34,7 +34,7 @@ export default function OperatorSchedules() {
       ]);
 
       setSchedules(schedulesRes.data?.schedules || []);
-      setBuses(busesRes.data?.buses || []);
+      setBuses(busesRes.data?.buses?.buses || []);
       setRoutes(routesRes.data?.routes || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -82,12 +82,12 @@ export default function OperatorSchedules() {
 
   const getRouteName = (routeId) => {
     const route = routes.find(r => r.id === routeId);
-    return route ? `${route.startCity} - ${route.endCity}` : 'Unknown Route';
+    return route ? `${route.cityA} - ${route.cityB}` : 'Unknown Route';
   };
 
   const getBusModel = (busId) => {
-    const bus = buses.find(b => b.id === busId);
-    return bus ? bus.model : 'Unknown Bus';
+    const bus = buses.find(b => b.busId === busId);
+    return bus ? bus.busModel : 'Unknown Bus';
   };
 
   return (
@@ -173,8 +173,8 @@ export default function OperatorSchedules() {
                     >
                       <option value="">Choose a bus...</option>
                       {buses.map((bus) => (
-                        <option key={bus.id} value={bus.id}>
-                          {bus.model} - {bus.registrationNumber}
+                        <option key={bus.busId} value={bus.busId}>
+                          {bus.busModel} - {bus.busNumber}
                         </option>
                       ))}
                     </select>
@@ -191,7 +191,7 @@ export default function OperatorSchedules() {
                       <option value="">Choose a route...</option>
                       {routes.map((route) => (
                         <option key={route.id} value={route.id}>
-                          {route.routeName} ({route.startCity} - {route.endCity})
+                          {route.cityA} - {route.cityB} ({route.distanceKm} km)
                         </option>
                       ))}
                     </select>

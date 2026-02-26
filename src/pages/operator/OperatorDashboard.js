@@ -26,7 +26,7 @@ export default function OperatorDashboard() {
       ]);
 
       setStats({
-        totalBuses: busesRes.data?.buses?.length || 0,
+        totalBuses: busesRes.data?.buses?.buses?.length || 0,
         totalRoutes: routesRes.data?.routes?.length || 0,
         totalSchedules: schedulesRes.data?.schedules?.length || 0,
       });

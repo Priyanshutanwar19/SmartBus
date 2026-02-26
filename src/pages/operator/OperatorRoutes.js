@@ -113,7 +113,7 @@ export default function OperatorRoutes() {
                       <div className="operator-route-city">
                         <div className="operator-city-dot"></div>
                         <div>
-                          <div className="operator-city-label">Start</div>
+                          <div className="operator-city-label">City A</div>
                           <div className="operator-city-name">{route.cityA}</div>
                         </div>
                       </div>
@@ -123,7 +123,7 @@ export default function OperatorRoutes() {
                       <div className="operator-route-city">
                         <div className="operator-city-dot"></div>
                         <div>
-                          <div className="operator-city-label">End</div>
+                          <div className="operator-city-label">City B</div>
                           <div className="operator-city-name">{route.cityB}</div>
                         </div>
                       </div>
@@ -157,14 +157,14 @@ export default function OperatorRoutes() {
                 <form onSubmit={handleSubmit} className="operator-modal-form">
                   <div className="operator-form-row">
                     <div className="operator-form-group">
-                      <label>Start City</label>
+                      <label>City A</label>
                       <select
                         name="cityAId"
                         value={formData.cityAId}
                         onChange={handleChange}
                         required
                       >
-                        <option value="">Select Start City</option>
+                        <option value="">Select City A</option>
                         {cities.map((city) => (
                           <option key={city.id} value={city.id}>
                             {city.name}
@@ -174,14 +174,14 @@ export default function OperatorRoutes() {
                     </div>
 
                     <div className="operator-form-group">
-                      <label>End City</label>
+                      <label>City B</label>
                       <select
                         name="cityBId"
                         value={formData.cityBId}
                         onChange={handleChange}
                         required
                       >
-                        <option value="">Select End City</option>
+                        <option value="">Select City B</option>
                         {cities.map((city) => (
                           <option key={city.id} value={city.id}>
                             {city.name}

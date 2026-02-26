@@ -14,8 +14,7 @@ export default function OperatorBuses() {
     registrationNumber: '',
     model: '',
     totalSeats: '',
-    type: 'AC', // AC or Non-AC
-    features: '',
+    type: 'AC', // AC, NON_AC, or SLEEPER
   });
 
   useEffect(() => {
@@ -25,10 +24,14 @@ export default function OperatorBuses() {
   const fetchBuses = async () => {
     try {
       const response = await operatorBusAPI.getBuses();
-      setBuses(response.data?.buses || []);
+      console.log('Buses response:', response.data);
+      // Backend returns { buses: { operator: {...}, buses: [...] } }
+      const busesData = response.data?.buses;
+      setBuses(busesData?.buses || []);
     } catch (error) {
       console.error('Error fetching buses:', error);
       toast.error('Failed to fetch buses');
+      setBuses([]);
     } finally {
       setLoading(false);
     }
@@ -45,8 +48,10 @@ export default function OperatorBuses() {
 
     try {
       const busData = {
-        ...formData,
+        busNumber: formData.registrationNumber,
+        busModel: formData.model,
         totalSeats: parseInt(formData.totalSeats),
+        busType: formData.type,
       };
 
       const response = await operatorBusAPI.addBus(busData);
@@ -58,7 +63,6 @@ export default function OperatorBuses() {
           model: '',
           totalSeats: '',
           type: 'AC',
-          features: '',
         });
         fetchBuses();
       }
@@ -111,32 +115,26 @@ export default function OperatorBuses() {
           ) : (
             <div className="operator-buses-grid">
               {buses.map((bus) => (
-                <div key={bus.id} className="operator-bus-card">
+                <div key={bus.busId} className="operator-bus-card">
                   <div className="operator-bus-header">
-                    <h3>{bus.model}</h3>
-                    <span className={`operator-bus-type ${bus.type?.toLowerCase()}`}>
-                      {bus.type}
+                    <h3>{bus.busModel || 'No Model'}</h3>
+                    <span className={`operator-bus-type ${bus.busType?.toLowerCase()}`}>
+                      {bus.busType}
                     </span>
                   </div>
                   <div className="operator-bus-details">
                     <div className="operator-bus-detail">
                       <span className="label">Registration:</span>
-                      <span className="value">{bus.registrationNumber}</span>
+                      <span className="value">{bus.busNumber}</span>
                     </div>
                     <div className="operator-bus-detail">
                       <span className="label">Total Seats:</span>
                       <span className="value">{bus.totalSeats}</span>
                     </div>
-                    {bus.features && (
-                      <div className="operator-bus-detail">
-                        <span className="label">Features:</span>
-                        <span className="value">{bus.features}</span>
-                      </div>
-                    )}
                   </div>
                   <button
                     className="operator-delete-btn"
-                    onClick={() => handleDeleteBus(bus.id)}
+                    onClick={() => handleDeleteBus(bus.busId)}
                   >
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -210,20 +208,10 @@ export default function OperatorBuses() {
                         required
                       >
                         <option value="AC">AC</option>
-                        <option value="Non-AC">Non-AC</option>
+                        <option value="NON_AC">Non-AC</option>
+                        <option value="SLEEPER">Sleeper</option>
                       </select>
                     </div>
-                  </div>
-
-                  <div className="operator-form-group">
-                    <label>Features (Optional)</label>
-                    <textarea
-                      name="features"
-                      value={formData.features}
-                      onChange={handleChange}
-                      placeholder="e.g., WiFi, Charging Ports, Reading Lights"
-                      rows="3"
-                    />
                   </div>
 
                   <div className="operator-modal-actions">
