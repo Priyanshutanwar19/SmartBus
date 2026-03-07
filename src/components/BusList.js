@@ -237,6 +237,16 @@ export default function BusList({ from, to, date }) {
     }
   }
 
+  const handleBookNow = (bus) => {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      toast.error("Please login to book tickets");
+      navigate("/login");
+      return;
+    }
+    navigate('/seat-selection', { state: { bus, from, to, date, scheduleId: bus.scheduleId } });
+  };
+
   if (isLoading) {
     return <div className="text-center my-10">Loading bus schedules...</div>;
   }
@@ -342,7 +352,7 @@ export default function BusList({ from, to, date }) {
             
             <button
               className="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-green-700 transition"
-              onClick={() => navigate('/seat-selection', { state: { bus, from, to, date, scheduleId: bus.scheduleId } })}
+              onClick={() => handleBookNow(bus)}
             >
               Book Now
             </button>
@@ -439,7 +449,7 @@ export default function BusList({ from, to, date }) {
                 <td className="p-4">
                   <button
                     className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg px-6 py-3 font-semibold hover:from-green-700 hover:to-green-800 transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2 group"
-                    onClick={() => navigate('/seat-selection', { state: { bus, from, to, date, scheduleId: bus.scheduleId } })}
+                    onClick={() => handleBookNow(bus)}
                   >
                     <span>Book Now</span>
                     <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

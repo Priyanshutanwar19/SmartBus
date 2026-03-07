@@ -82,9 +82,8 @@ export default function PassengerDetails() {
             } else {
               setBookingMessage("Booking created! Proceed to payment.");
             }
-            // Navigate to ticket summary
-            const pnr = response.pnr || `SB${Math.floor(100000 + Math.random() * 900000)}`;
-            navigate("/ticket", { state: { ...state, appliedCoupon: applied, finalFare: getFinalFare(), pnr, paymentOption } });
+            // Navigate to my bookings
+            navigate("/my-bookings");
           } else {
             setError(response.message || "Booking failed.");
           }

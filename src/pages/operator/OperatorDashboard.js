@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { operatorBusAPI, operatorRouteAPI, operatorScheduleAPI } from '../../services/operatorApi';
 import OperatorSidebar from '../../components/operator/OperatorSidebar';
@@ -6,6 +7,7 @@ import OperatorHeader from '../../components/operator/OperatorHeader';
 import './OperatorDashboard.css';
 
 export default function OperatorDashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalBuses: 0,
     totalRoutes: 0,
@@ -83,7 +85,10 @@ export default function OperatorDashboard() {
               <div className="operator-info-section">
                 <h2>Quick Actions</h2>
                 <div className="operator-quick-actions">
-                  <div className="operator-action-card">
+                  <div 
+                    className="operator-action-card cursor-pointer"
+                    onClick={() => navigate('/operator/buses', { state: { openModal: true } })}
+                  >
                     <div className="operator-action-icon">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -93,7 +98,10 @@ export default function OperatorDashboard() {
                     <p>Register a new bus to your fleet</p>
                   </div>
 
-                  <div className="operator-action-card">
+                  <div 
+                    className="operator-action-card cursor-pointer"
+                    onClick={() => navigate('/operator/routes', { state: { openModal: true } })}
+                  >
                     <div className="operator-action-icon">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -103,7 +111,10 @@ export default function OperatorDashboard() {
                     <p>Define a new bus route</p>
                   </div>
 
-                  <div className="operator-action-card">
+                  <div 
+                    className="operator-action-card cursor-pointer"
+                    onClick={() => navigate('/operator/schedules', { state: { openModal: true } })}
+                  >
                     <div className="operator-action-icon">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

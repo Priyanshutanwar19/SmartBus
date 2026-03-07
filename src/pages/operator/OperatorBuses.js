@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { operatorBusAPI } from '../../services/operatorApi';
 import OperatorSidebar from '../../components/operator/OperatorSidebar';
@@ -6,9 +7,10 @@ import OperatorHeader from '../../components/operator/OperatorHeader';
 import './OperatorBuses.css';
 
 export default function OperatorBuses() {
+  const location = useLocation();
   const [buses, setBuses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(location.state?.openModal || false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     registrationNumber: '',

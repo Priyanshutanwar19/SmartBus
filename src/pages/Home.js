@@ -21,16 +21,7 @@ export default function Home() {
   };
 
   const handleDestinationClick = (to) => {
-    // Check if user is logged in
-    const user = localStorage.getItem("user");
-    if (!user) {
-      toast.error("Please login to search for buses", {
-        description: "You need to be logged in to search and book bus tickets"
-      });
-      setTimeout(() => navigate("/login"), 1500);
-      return;
-    }
-    
+    // Guests can now search buses freely
     setSearch({ from: "Delhi", to, date: getToday() });
   };
 

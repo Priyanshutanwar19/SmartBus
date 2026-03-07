@@ -17,15 +17,7 @@ export default function BusSearchForm({ onSearch }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Check if user is logged in
-    const user = localStorage.getItem("user");
-    if (!user) {
-      toast.error("Please login to search for buses", {
-        description: "You need to be logged in to search and book bus tickets"
-      });
-      setTimeout(() => navigate("/login"), 1500);
-      return;
-    }
+    // Allow guest users to search freely
     
     if (from && to && date) {
       onSearch({ from, to, date });
