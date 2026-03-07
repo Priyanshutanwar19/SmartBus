@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import bookingsAPI from "../services/bookingsApi";
+import { getSocket, disconnectSocket } from "../services/socket";
 
 export default function SeatSelection() {
   const { state } = useLocation();
@@ -12,7 +13,16 @@ export default function SeatSelection() {
   const [seatLayout, setSeatLayout] = useState({ rows: 0, cols: 0 });
   const [loading, setLoading] = useState(true);
   const [baseFare, setBaseFare] = useState(0);
-  
+
+  // Ref for debouncing seat selections
+  const debounceTimerRef = React.useRef(null);
+  const pendingAddedSeatsRef = React.useRef([]);
+
+  // Keep a ref of the selected seats so the debounce timeout can access the latest state
+  const selectedRef = React.useRef(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
   // Fetch seat plan from backend
   const fetchSeatPlan = React.useCallback(async () => {
     if (!scheduleId) {
@@ -45,6 +55,45 @@ export default function SeatSelection() {
     fetchSeatPlan();
   }, [fetchSeatPlan]);
 
+  // Socket connection and event listeners
+  useEffect(() => {
+    if (!scheduleId) return;
+
+    const socket = getSocket();
+    socket.connect(); // Actually trigger connect ifautoConnect is false
+    socket.emit("joinScheduleRoom", scheduleId);
+
+    const handleSeatLocked = (data) => {
+      // { seatNumber, userId }
+      setSeats(prevSeats =>
+        prevSeats.map(seat =>
+          seat.seatNumber === data.seatNumber
+            ? { ...seat, isBooked: true, lockedBySessionId: data.userId }
+            : seat
+        )
+      );
+    };
+
+    const handleSeatUnlocked = (data) => {
+      // { seatNumber }
+      setSeats(prevSeats =>
+        prevSeats.map(seat =>
+          seat.seatNumber === data.seatNumber
+            ? { ...seat, isBooked: false, lockedBySessionId: null }
+            : seat
+        )
+      );
+    };
+
+    socket.on("seatLockedBroadcast", handleSeatLocked);
+    socket.on("seatUnlockedBroadcast", handleSeatUnlocked);
+
+    return () => {
+      socket.off("seatLockedBroadcast", handleSeatLocked);
+      socket.off("seatUnlockedBroadcast", handleSeatUnlocked);
+    };
+  }, [scheduleId]);
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -65,19 +114,35 @@ export default function SeatSelection() {
       newSelected = [...selected, seat.seatNumber];
     }
     setSelected(newSelected);
-    // Lock seats if adding
+
+    // Debounce the lock request
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Only emit lock event if we are actually adding seats
+    // We send only the newly added seats to the backend to avoid "already locked" errors
     if (!selected.includes(seat.seatNumber)) {
-      bookingsAPI.lockSeats({ scheduleId, seatNumbers: newSelected })
-        .then(response => {
-          if (response.success) {
-            toast.success('Seats locked for 5 minutes');
-            // Optionally refresh seat plan
-            fetchSeatPlan();
-          } else {
-            toast.error(response.message || 'Failed to lock seats');
-          }
-        })
-        .catch(err => toast.error(err.message || 'Failed to lock seats'));
+      if (!pendingAddedSeatsRef.current.includes(seat.seatNumber)) {
+        pendingAddedSeatsRef.current.push(seat.seatNumber);
+      }
+      
+      debounceTimerRef.current = setTimeout(() => {
+        const seatsToLock = [...pendingAddedSeatsRef.current];
+        pendingAddedSeatsRef.current = []; // Reset for the next batch
+        
+        if (seatsToLock.length > 0) {
+          const socket = getSocket();
+          socket.emit("lockSeatRequest", { scheduleId, seatNumbers: seatsToLock }, (response) => {
+             if (response.success) {
+               toast.success('Seats locked for 5 minutes');
+               // We rely on the broadcast events to update the UI
+             } else {
+               toast.error(response.error || 'Failed to lock seats');
+             }
+          });
+        }
+      }, 500); // 500ms debounce
     }
   }
 
@@ -114,19 +179,18 @@ export default function SeatSelection() {
       <div className="text-sm text-gray-500 mb-6">
         {bus?.operator} • {bus?.busNumber} • {bus?.busType}
       </div>
-      
+
       <div className="mb-6">
         <div className="grid gap-2 w-fit mx-auto" style={{ gridTemplateColumns: `repeat(${seatLayout.cols || 4}, minmax(0, 1fr))` }}>
           {seats.map(seat => (
             <button
               key={seat.seatNumber}
-              className={`h-10 w-10 rounded border text-xs font-bold ${
-                seat.isBooked 
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-                  : selected.includes(seat.seatNumber) 
-                  ? "bg-green-500 text-white" 
-                  : "bg-blue-200 hover:bg-blue-300"
-              }`}
+              className={`h-10 w-10 rounded border text-xs font-bold ${seat.isBooked
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : selected.includes(seat.seatNumber)
+                    ? "bg-green-500 text-white"
+                    : "bg-blue-200 hover:bg-blue-300"
+                }`}
               disabled={seat.isBooked}
               onClick={() => handleSeatClick(seat)}
               title={`Seat ${seat.seatNumber}${seat.isBooked ? ' (Booked)' : ''}`}
@@ -152,12 +216,12 @@ export default function SeatSelection() {
           </div>
         </div>
       </div>
-      
+
       <div className="mb-4">
         <div className="font-bold text-lg">Selected Seats: {selected.length > 0 ? selected.join(', ') : 'None'}</div>
         <div className="font-bold text-xl text-green-600">Total Fare: ₹{fare}</div>
       </div>
-      
+
       <div className="flex gap-4">
         <button
           className="bg-gray-500 text-white rounded px-6 py-2 font-semibold hover:bg-gray-600 transition"
